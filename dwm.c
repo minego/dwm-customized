@@ -676,7 +676,7 @@ clientmessage(XEvent *e) {
 			c->mon->seltags ^= 1;
 			c->mon->tagset[c->mon->seltags] = c->tags;
 		}
-		pop(c);
+		focus(c);
 	}
 }
 
