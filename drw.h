@@ -42,6 +42,7 @@ typedef struct {
 	unsigned int h;
 } Extnts;
 
+
 /* Drawable abstraction */
 Drw *drw_create(Display *dpy, int screen, Window win, unsigned int w, unsigned int h);
 void drw_resize(Drw *drw, unsigned int w, unsigned int h);
@@ -72,3 +73,8 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char 
 
 /* Map functions */
 void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h);
+
+/* X Basic call */
+void x_set_color(Drw *drw, Clr *color);
+void x_drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h);
+void x_drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *text);

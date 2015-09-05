@@ -163,6 +163,7 @@ static void detach(Client *c);
 static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
+static int drawstatusbar(Monitor *m, int bh, char* text, int xx);
 static void drawbars(void);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
@@ -236,7 +237,7 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
-static char stext[256];
+static char stext[1024];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh, blw = 0;      /* bar geometry */
@@ -689,6 +690,100 @@ dirtomon(int dir) {
 	return m;
 }
 
+int
+drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
+	int ret, i, w, len, x;
+	short isCode = 0;
+	Clr * color = drw->scheme->fg;
+
+	len = strlen(stext) + 1 ;
+	char *text = (char*) malloc(sizeof(char)*len);
+	char *p = text;
+	memcpy(text, stext, len);
+
+	// compute width of the status text
+	w = 0;
+	len = 0;
+	i = -1;
+	while(text[++i]) {
+		if(text[i] != '^' && !isCode) {
+			++len;
+		} else if (text[i] == '^') {
+			isCode = !isCode;
+			if(isCode && text[++i] == 'f') {
+				w += atoi(text + ++i);
+			}
+		}
+	}
+
+	w += drw_font_getexts_width(drw->font, text, len);
+	ret = x = m->ww - w;
+	if(x < xx) {
+		ret = x = xx;
+		w = m->ww - xx;
+	}
+
+	x_set_color(drw, drw->scheme->bg);
+	x_drw_rect(drw, x, 0, w, bh);
+	x_set_color(drw, color);
+
+	// process status text
+	i = -1;
+	while(text[++i]) {
+		if(text[i] == '^' && !isCode) {
+			isCode = 1;
+
+			// draw text
+			text[i] = '\0';
+			w = drw_font_getexts_width(drw->font, text, strlen(text));
+			x_drw_text(drw, x, 0, w, bh, text);
+
+			// increment x pos
+			x += w;
+
+			// process code
+			while(text[++i] != '^') {
+				if(text[i] == 'c') {
+					char buf[8];
+					memcpy(buf, (char*)text+i+1, 7);
+					buf[7] = '\0';
+					color = drw_clr_create(drw, buf);
+					x_set_color(drw, color);
+					i += 7;
+				} else if(text[i] == 'd') {
+					x_set_color(drw, drw->scheme->fg);
+				} else if(text[i] == 'r') {
+					int rx = atoi(text + ++i);
+					while(text[++i] != ',');
+					int ry = atoi(text + ++i);
+					while(text[++i] != ',');
+					int rw = atoi(text + ++i);
+					while(text[++i] != ',');
+					int rh = atoi(text + ++i);
+
+					x_drw_rect(drw, rx + x, ry, rw, rh);
+				} else if (text[i] == 'f') {
+					x += atoi(text + ++i);
+				}
+			}
+
+			text = text + i + 1;
+			i=-1;
+			isCode = 0;
+		}
+	}
+
+	if(!isCode) {
+		w = drw_font_getexts_width(drw->font, text, strlen(text)) + drw->font->h;
+		x_drw_text(drw, x, 0, w, bh, text);
+	}
+
+	x_set_color(drw, drw->scheme->bg);
+	free(p);
+
+	return ret;
+}
+
 void
 drawbar(Monitor *m) {
 	int x, xx, w;
@@ -714,15 +809,8 @@ drawbar(Monitor *m) {
 	drw_text(drw, x, 0, w, bh, m->ltsymbol, 0);
 	x += w;
 	xx = x;
-	if(m == selmon) { /* status is only drawn on selected monitor */
-		w = TEXTW(stext);
-		x = m->ww - w;
-		if(x < xx) {
-			x = xx;
-			w = m->ww - xx;
-		}
-		drw_text(drw, x, 0, w, bh, stext, 0);
-	}
+	if(m == selmon) /* status is only drawn on selected monitor */
+		x = drawstatusbar(m, bh, stext, xx);
 	else
 		x = m->ww;
 	if((w = x - xx) > bh) {

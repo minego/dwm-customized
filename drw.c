@@ -409,3 +409,34 @@ drw_cur_free(Drw *drw, Cur *cursor) {
 	XFreeCursor(drw->dpy, cursor->cursor);
 	free(cursor);
 }
+
+void
+x_set_color(Drw *drw, Clr *color) {
+	XSetForeground(drw->dpy, drw->gc, color->rgb);
+}
+
+void
+x_drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h) {
+	XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
+}
+
+void
+x_drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *text) {
+	char buf[256];
+	int ty, len, olen;
+	Extnts tex;
+
+	olen = strlen(text);
+	drw_font_getexts(drw->font, text, olen, &tex);
+	ty = y + (h / 2) - (tex.h / 2) + drw->font->ascent;
+
+	len = MIN(olen, sizeof buf);
+	if(!len)
+		return;
+
+	memcpy(buf, text, len);
+	if(drw->font->set)
+		XmbDrawString(drw->dpy, drw->drawable, drw->font->set, drw->gc, x, ty, buf, len);
+	else
+		XDrawString(drw->dpy, drw->drawable, drw->gc, x, ty, buf, len);
+}
