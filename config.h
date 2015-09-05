@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
-// #include "gaplessgrid.c"
+#include "gaplessgrid.c"
 #include "push.c"
 #include "tcl.c"
 #include "forcetile.c"
@@ -55,7 +55,7 @@ static const Layout layouts[] = {		/* First entry is default */
 	{ "[]=",		tile			},
 	// { "><>",		NULL			},
 	{ "[M]",		monocle			},
-//	{ "###",		gaplessgrid		},
+	{ "###",		gaplessgrid		},
 	{ NULL,			NULL			}
 };
 
