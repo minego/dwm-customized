@@ -273,6 +273,7 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
+static void adjustborders(Monitor *m);
 
 /* variables */
 static Systray *systray = NULL;
@@ -419,10 +420,13 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 
 void
 arrange(Monitor *m) {
-	if(m)
+	if(m) {
+		adjustborders(m);
 		showhide(m->stack);
-	else for(m = mons; m; m = m->next)
+	} else for(m = mons; m; m = m->next) {
+		adjustborders(m);
 		showhide(m->stack);
+	}
 	if(m) {
 		arrangemon(m);
 		restack(m);
@@ -1252,7 +1256,20 @@ manage(Window w, XWindowAttributes *wa) {
 	/* only fix client y-offset, if the client center might cover the bar */
 	c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
 	           && (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
-	c->bw = borderpx;
+
+	updatewindowtype(c);
+	if (c->isfloating) {
+		c->bw = c->isfullscreen ? 0 : borderpx;
+	} else {
+		c->bw = 0;
+		for(t = c->mon->clients; t; t = c->next) {
+			if (!t->isfloating && c != t && c->tags & t->tags) {
+				c->bw = borderpx;
+				break;
+			}
+		}
+		adjustborders(c->mon);
+	}
 
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
@@ -1517,6 +1534,33 @@ removesystrayicon(Client *i) {
 	free(i);
 }
 
+void
+adjustborders(Monitor *m) {
+	Client *c, *l = NULL;
+	int visible = 0;
+
+	for(c = m->clients; c; c = c->next) {
+		if (ISVISIBLE(c) && !c->isfloating && m->lt[m->sellt]->arrange) {
+			if (m->lt[m->sellt]->arrange == monocle) {
+				visible = 1;
+				c->oldbw = c->bw;
+				c->bw = 0;
+			} else {
+				visible++;
+				c->oldbw = c->bw;
+				c->bw = borderpx;
+			}
+
+			l = c;
+		}
+	}
+
+	if (l && visible == 1 && l->bw) {
+		l->oldbw = l->bw;
+		l->bw = 0;
+		resizeclient(l, l->x, l->y, l->w, l->h);
+	}
+}
 
 void
 resize(Client *c, int x, int y, int w, int h, Bool interact) {
@@ -2429,7 +2473,8 @@ updatewindowtype(Client *c) {
 	Atom state = getatomprop(c, netatom[NetWMState]);
 	Atom wtype = getatomprop(c, netatom[NetWMWindowType]);
 
-	if(state == netatom[NetWMFullscreen])
+	if(state == netatom[NetWMFullscreen] ||
+			(WIDTH(c) == (c->mon->mx + c->mon->mw) && (HEIGHT(c) == (c->mon->my + c->mon->mh))))
 		setfullscreen(c, True);
 	if(wtype == netatom[NetWMWindowTypeDialog])
 		c->isfloating = True;
