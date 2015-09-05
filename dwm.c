@@ -141,6 +141,7 @@ struct Monitor {
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
+	unsigned int maintag[2];
 	Bool showbar;
 	Bool topbar;
 	Client *clients;
@@ -354,8 +355,10 @@ comboview(const Arg *arg) {
 	} else {
 		selmon->seltags ^= 1;	/*toggle tagset*/
 		combo = 1;
-		if (newtags)
+		if (newtags) {
 			selmon->tagset[selmon->seltags] = newtags;
+			selmon->maintag[selmon->seltags] = newtags;
+		}
 	}
 	focus(NULL);
 	arrange(selmon);
@@ -392,7 +395,10 @@ applyrules(Client *c) {
 		XFree(ch.res_class);
 	if(ch.res_name)
 		XFree(ch.res_name);
-	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+
+	c->tags = c->tags & TAGMASK;
+	if (!c->tags) c->tags = c->mon->maintag[c->mon->seltags];
+	if (!c->tags) c->tags = c->mon->tagset[c->mon->seltags];
 }
 
 Bool
@@ -780,6 +786,7 @@ createmon(void) {
 	if(!(m = (Monitor *)calloc(1, sizeof(Monitor))))
 		die("fatal: could not malloc() %u bytes\n", sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
+	m->maintag[0] = m->maintag[1] = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
 	m->showbar = showbar;
