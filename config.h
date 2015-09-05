@@ -1,8 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
-#include "gaplessgrid.c"
+// #include "gaplessgrid.c"
+// #include "push.c"
 #include "tcl.c"
-#include "push.c"
 #include "forcetile.c"
 
 /* appearance */
@@ -11,7 +11,7 @@ static const char *fonts[] = {
     "VL Gothic:size=10.5",
     "WenQuanYi Micro Hei:size=10.5",
 };
-#define dmenufont					"-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
+#define dmenufont					"-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*"
 #define normbordercolor				"#444444"
 #define normbgcolor					"#222222"
 #define normfgcolor					"#bbbbbb"
@@ -53,7 +53,7 @@ static const Layout layouts[] = {		/* First entry is default */
 	{ "[]=",		tile			},
 	// { "><>",		NULL			},
 	{ "[M]",		monocle			},
-	{ "###",		gaplessgrid		},
+//	{ "###",		gaplessgrid		},
 	{ NULL,			NULL			}
 };
 
@@ -61,10 +61,9 @@ static const Layout layouts[] = {		/* First entry is default */
 
 /* key definitions */
 #define MODKEY Mod1Mask
+// TODO Take my old TAGKEYS from original version
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      comboview,      {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
-	{ MODKEY|ShiftMask,             KEY,      combotag,       {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
@@ -97,11 +96,11 @@ static Key keys[] = {
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
-	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
-	{ MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = -0.25} },
-	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
-	{ MODKEY|ShiftMask,				XK_j,      pushdown,       {0} },
-    { MODKEY|ShiftMask,				XK_k,      pushup,         {0} },
+//	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
+//	{ MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = -0.25} },
+//	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
+//	{ MODKEY|ShiftMask,				XK_j,      pushdown,       {0} },
+//	{ MODKEY|ShiftMask,				XK_k,      pushup,         {0} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
@@ -118,7 +117,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	{ MODKEY,                       XK_n,      nametag,        {0} },
+//	{ MODKEY,                       XK_n,      nametag,        {0} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)

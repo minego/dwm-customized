@@ -412,7 +412,7 @@ drw_cur_free(Drw *drw, Cur *cursor) {
 
 void
 x_set_color(Drw *drw, Clr *color) {
-	XSetForeground(drw->dpy, drw->gc, color->rgb);
+	XSetForeground(drw->dpy, drw->gc, color->pix);
 }
 
 void
@@ -427,16 +427,14 @@ x_drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *t
 	Extnts tex;
 
 	olen = strlen(text);
-	drw_font_getexts(drw->font, text, olen, &tex);
-	ty = y + (h / 2) - (tex.h / 2) + drw->font->ascent;
+	drw_font_getexts(drw->fonts[0], text, olen, &tex);
+	ty = y + (h / 2) - (tex.h / 2) + drw->fonts[0]->ascent;
 
 	len = MIN(olen, sizeof buf);
 	if(!len)
 		return;
 
 	memcpy(buf, text, len);
-	if(drw->font->set)
-		XmbDrawString(drw->dpy, drw->drawable, drw->font->set, drw->gc, x, ty, buf, len);
-	else
-		XDrawString(drw->dpy, drw->drawable, drw->gc, x, ty, buf, len);
+	XDrawString(drw->dpy, drw->drawable, drw->gc, x, ty, buf, len);
 }
+

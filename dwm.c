@@ -716,7 +716,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 		}
 	}
 
-	w += drw_font_getexts_width(drw->font, text, len);
+	w += drw_font_getexts_width(drw->fonts[0], text, len);
 	ret = x = m->ww - w;
 	if(x < xx) {
 		ret = x = xx;
@@ -735,7 +735,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 
 			// draw text
 			text[i] = '\0';
-			w = drw_font_getexts_width(drw->font, text, strlen(text));
+			w = drw_font_getexts_width(drw->fonts[0], text, strlen(text));
 			x_drw_text(drw, x, 0, w, bh, text);
 
 			// increment x pos
@@ -774,7 +774,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	}
 
 	if(!isCode) {
-		w = drw_font_getexts_width(drw->font, text, strlen(text)) + drw->font->h;
+		w = drw_font_getexts_width(drw->fonts[0], text, strlen(text)) + drw->fonts[0]->h;
 		x_drw_text(drw, x, 0, w, bh, text);
 	}
 
