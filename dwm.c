@@ -1780,6 +1780,28 @@ adjustborders(Monitor *m) {
 
 void
 resize(Client *c, int x, int y, int w, int h, Bool interact) {
+	int		n;
+
+	n = c->mon->mx + c->mon->mw;
+	if (x + w + 1 + (2 * c->bw) >= n) {
+		w = n - x - c->bw;
+	}
+
+	n = c->mon->my + c->mon->mh;
+	if (y + h + 1 + (2 * c->bw) >= n) {
+		h = n - y - c->bw;
+	}
+
+	if (x <= c->mon->mx) {
+		x -= c->bw;
+		w += c->bw;
+	}
+
+	if (y <= c->mon->my) {
+		y -= c->bw;
+		y += c->bw;
+	}
+
 	if(applysizehints(c, &x, &y, &w, &h, interact))
 		resizeclient(c, x, y, w, h);
 }
