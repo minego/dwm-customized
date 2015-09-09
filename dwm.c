@@ -916,6 +916,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	}
 
 	w += drw_font_getexts_width(drw->fonts[0], text, len);
+	w += getsystraywidth();
 	ret = x = m->ww - w;
 	if(x < xx) {
 		ret = x = xx;
