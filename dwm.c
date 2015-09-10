@@ -902,20 +902,32 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 
 	// compute width of the status text
 	w = 0;
-	len = 0;
 	i = -1;
+
 	while(text[++i]) {
-		if(text[i] != '^' && !isCode) {
-			++len;
-		} else if (text[i] == '^') {
-			isCode = !isCode;
-			if(isCode && text[++i] == 'f') {
-				w += atoi(text + ++i);
+		if(text[i] == '^' && !isCode) {
+			isCode = 1;
+
+			// compute width of text
+			text[i] = '\0';
+			w += drw_font_getexts_width(drw->fonts[0], text, strlen(text));
+			text[i] = '^';
+
+			// process code
+			while(text[++i] != '^') {
+				if (text[i] == 'f') {
+					w += atoi(text + ++i);
+				}
 			}
+
+			text = text + i + 1;
+			i=-1;
+			isCode = 0;
 		}
 	}
+	w += drw_font_getexts_width(drw->fonts[0], text, strlen(text));
+	text = p;
 
-	w += drw_font_getexts_width(drw->fonts[0], text, len);
 	w += getsystraywidth();
 	ret = x = m->ww - w;
 	if(x < xx) {
