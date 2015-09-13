@@ -948,7 +948,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 			// draw text
 			text[i] = '\0';
 			w = drw_font_getexts_width(drw->fonts[0], text, strlen(text));
-			x_drw_text(drw, x, 0, w, bh, text);
+			x_drw_text(drw, x, 2, w, bh, text);
 
 			// increment x pos
 			x += w;
@@ -987,7 +987,7 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 
 	if(!isCode) {
 		w = drw_font_getexts_width(drw->fonts[0], text, strlen(text)) + drw->fonts[0]->h;
-		x_drw_text(drw, x, 0, w, bh, text);
+		x_drw_text(drw, x, 2, w, bh, text);
 	}
 
 	x_set_color(drw, drw->scheme->bg);
