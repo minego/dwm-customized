@@ -110,6 +110,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
+	int column;
 	unsigned int tags;
 	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
@@ -135,6 +136,7 @@ typedef struct {
 struct Monitor {
 	char ltsymbol[16];
 	float mfact;
+	float rfact;
 	int nmaster;
 	int num;
 	int by;               /* bar geometry */
@@ -827,6 +829,7 @@ createmon(void) {
 	m->tagset[0] = m->tagset[1] = 1;
 	m->maintag[0] = m->maintag[1] = 1;
 	m->mfact = mfact;
+	m->rfact = rfact;
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->showtab = showtab;

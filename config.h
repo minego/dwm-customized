@@ -55,7 +55,8 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
-static const float mfact      = 0.65; /* factor of master area size [0.05..0.95] */
+static const float mfact      = 0.60; /* factor of master area size [0.05..0.95] */
+static const float rfact      = 0.65; /* factor of right column area size [0.05..0.95] vs the left column */
 static const int nmaster      = 1;    /* number of clients in master area */
 static const Bool resizehints = False; /* True means respect size hints in tiled resizals */
 
@@ -108,8 +109,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_h,      setrfact,       {.f = -0.05} },
+	{ MODKEY,                       XK_l,      setrfact,       {.f = +0.05} },
 	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
 	{ MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = -0.25} },
 	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },

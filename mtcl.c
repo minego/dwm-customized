@@ -11,9 +11,11 @@
 
 void mtcl(Monitor *m)
 {
-	int				x, y, h, w, mw, sw, bw, leftcount, rightcount;
+	int				x, y, h, w, bw;
+	int				masterw, leftw, rightw, leftn, rightn;
 	unsigned int	i, n;
-	Client			*c;
+	float			sfacts;
+	Client			*c, *cwas;
 
 	/* Count the windows */
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
@@ -24,94 +26,146 @@ void mtcl(Monitor *m)
 		return;
 	}
 
-	c  = nexttiled(m->clients);
-	mw = m->mfact * m->ww;
-	sw = (m->ww - mw) / 2;
-	// bw = (2 * c->bw);
-	bw = c->bw;
+	c		= nexttiled(m->clients);
+	masterw	= m->mfact * m->ww;
+	bw		= (2 * c->bw);
 
 	/* Calculate the number of clients in each column */
 	n--;
 	if (n == 0) {
-		rightcount	= 0;
-		leftcount	= 0;
+		rightn	= 0;
+		leftn	= 0;
 	} else if (n < LEFT_PORTION) {
-		rightcount	= n;
-		leftcount	= 0;
+		rightn	= n;
+		leftn	= 0;
 	} else {
-		rightcount	= n / LEFT_PORTION;
+		rightn	= n / LEFT_PORTION;
 		if ((n % LEFT_PORTION) > 1) {
 			/* Round up */
-			rightcount++;
+			rightn++;
 		}
 
-		leftcount	= n - rightcount;
+		leftn	= n - rightn;
+	}
+
+	rightw		= (m->ww - masterw) * selmon->rfact;
+	leftw		= (m->ww - masterw) - rightw;
+	if (!leftn) {
+		rightw	= m->ww - masterw;
+		leftw	= 0;
+	}
+	if (!rightn) {
+		rightw	= 0;
+		leftw	= 0;
 	}
 
 	/* Master */
+	// TODO Add support for a variable number of master clients?
 	x = m->wx;
 	y = m->wy,
 	w = m->ww;
 	h = m->wh - bw;
 
-	if (leftcount) {
-		x += sw;
-		w -= (sw + bw);
+	if (leftn) {
+		x += leftw;
+		w -= (leftw + bw);
 	}
-	if (rightcount) {
-		w -= (sw + bw);
+	if (rightn) {
+		w -= (rightw + bw);
 	}
 
 	resize(c, x, y, w, h, False);
+	c->column = 0; /* center column */
 
-	if (!leftcount && !rightcount) {
+	if (!leftn && !rightn) {
 		return;
 	}
 
-	w = (m->ww - mw) / ((n > 1) + 1);
 	c = nexttiled(c->next);
 
 	/* Right column */
-	if (rightcount > 0) {
-		x = m->wx + mw + sw;
-		y = m->wy;
-		h = m->wh / rightcount;
+	if (rightn > 0) {
+		sfacts = 0;
 
-		if (h < bh) {
-			h = m->wh;
+		cwas = c;
+		for (i = 0; c && i < rightn; c = nexttiled(c->next), i++) {
+			sfacts += c->cfact;
 		}
+		c = cwas;
 
-		for (i = 0; c && i < rightcount; c = nexttiled(c->next), i++) {
+		x = m->wx + masterw + leftw;
+		y = m->wy;
+		w = rightw;
+
+		for (i = 0; c && i < rightn; c = nexttiled(c->next), i++) {
 			resize(c,
 					x, y,
-					w - bw, h - bw,
+					w - bw,
+					((m->wh / sfacts) * c->cfact) + bw,
 					False);
+			c->column = 1; /* right column */
 
-			if (h != m->wh) {
-				y = c->y + HEIGHT(c);
+			h = HEIGHT(c);
+			if (h < m->wh) {
+				y = c->y + h;
 			}
 		}
 	}
 
 	/* left column */
-	if (leftcount > 0) {
+	if (leftn > 0) {
+		sfacts = 0;
+
+		cwas = c;
+		for (i = 0; c && i < leftn; c = nexttiled(c->next), i++) {
+			sfacts += c->cfact;
+		}
+		c = cwas;
+
 		x = m->wx;
 		y = m->wy;
-		h = m->wh / leftcount;
+		w = leftw;
 
-		if (h < bh) {
-			h = m->wh;
-		}
-
-		for (i = 0; c && i < leftcount; c = nexttiled(c->next), i++) {
+		for (i = 0; c && i < leftn; c = nexttiled(c->next), i++) {
 			resize(c, x, y,
-					w - bw, h - bw,
+					w - bw,
+					((m->wh / sfacts) * c->cfact) + bw,
 					False);
+			c->column = -1; /* left column */
 
-			if (h != m->wh) {
-				y = c->y + HEIGHT(c);
+			h = HEIGHT(c);
+			if (h < m->wh) {
+				y = c->y + h;
 			}
 		}
 	}
+}
+
+/* A value >= 1.0 sets the rfact to that value - 1.0 */
+void setrfact(const Arg *arg)
+{
+	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
+		return;
+	}
+
+	if (!selmon->sel || 0 == selmon->sel->column) {
+		/* Master window is selected, so resize the mfact */
+		setmfact(arg);
+		return;
+	}
+
+	if (arg->f >= 1.0) {
+		selmon->rfact = arg->f - 1.0;
+	} else {
+		/* Adjust the argument based on the selected column */
+		selmon->rfact += (arg->f * selmon->sel->column);
+	}
+
+	if (selmon->rfact < 0.1) {
+		selmon->rfact = 0.1;
+	} else if (selmon->rfact > 0.9) {
+		selmon->rfact = 0.9;
+	}
+	arrange(selmon);
 }
 
