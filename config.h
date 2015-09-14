@@ -2,7 +2,7 @@
 
 #include "gaplessgrid.c"
 #include "push.c"
-#include "tcl.c"
+#include "mtcl.c"
 #include "forcetile.c"
 
 /* appearance */
@@ -61,7 +61,7 @@ static const Bool resizehints = False; /* True means respect size hints in tiled
 
 static const Layout layouts[] = {		/* First entry is default */
 	/* symbol		arrange function */
-    { "|||",		tcl				},
+    { "|||",		mtcl			},
 	{ "[]=",		tile			},
 	// { "><>",		NULL			},
 	{ "[M]",		monocle			},
