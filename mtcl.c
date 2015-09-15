@@ -42,22 +42,17 @@ void mtcl(Monitor *m)
 	masterw	= m->mfact * m->ww;
 	bw		= (2 * c->bw);
 	l		= lfact;
+	n--;
 
-	if (m->ww < 1920) {
-		/* On small screens keep everything on the right */
+	/*
+		Disable the left column if the total screen size is too small or if
+		there are not enough clients for it to make sense.
+	*/
+	if (m->ww < 1920 || n < mintclcount) {
 		l = 0.0;
-	}
-	if (n < mintclcount) {
-		/* Require a minimum of 4 clients to show both columns */
-		if (l < 0.5) {
-			l = 0.0;
-		} else {
-			l = 1.0;
-		}
 	}
 
 	/* Calculate the number of clients in each column */
-	n--;
 	if (n == 0) {
 		rightn	= 0;
 		leftn	= 0;
@@ -71,6 +66,9 @@ void mtcl(Monitor *m)
 		}
 		c = cwas;
 
+		if (i > n) {
+			i = n;
+		}
 		rightn	= i;
 		leftn	= n - i;
 	}
