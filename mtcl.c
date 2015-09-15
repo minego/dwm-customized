@@ -35,7 +35,8 @@ void mtcl(Monitor *m)
 	if (n == 0) {
 		rightn	= 0;
 		leftn	= 0;
-	} else if (n < LEFT_PORTION) {
+	} else if (n < LEFT_PORTION || m->ww < 1920) {
+		/* Use 2 columns if screen is less than 1920 wide */
 		rightn	= n;
 		leftn	= 0;
 	} else {
