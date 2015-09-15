@@ -169,6 +169,7 @@ typedef struct {
 	unsigned int tags;
 	Bool isfloating;
 	int monitor;
+	float cfact;
 } Rule;
 
 typedef struct Systray   Systray;
@@ -401,6 +402,9 @@ applyrules(Client *c) {
 		{
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
+			if (r->cfact >= 0.25 && r->cfact <= 4.0) {
+				c->cfact = r->cfact;
+			}
 			for(m = mons; m && m->num != r->monitor; m = m->next);
 			if(m)
 				c->mon = m;
@@ -1452,6 +1456,7 @@ manage(Window w, XWindowAttributes *wa) {
 	if(!(c = calloc(1, sizeof(Client))))
 		die("fatal: could not malloc() %u bytes\n", sizeof(Client));
 	c->win = w;
+	c->cfact = 1.0;
 	updatetitle(c);
 	if(XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
 		c->mon = t->mon;
@@ -1467,7 +1472,6 @@ manage(Window w, XWindowAttributes *wa) {
 	c->w = c->oldw = wa->width;
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
-	c->cfact = 1.0;
 
 	if(c->x + WIDTH(c) > c->mon->mx + c->mon->mw)
 		c->x = c->mon->mx + c->mon->mw - WIDTH(c);
