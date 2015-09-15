@@ -48,7 +48,7 @@ static const Rule rules[] = {
 	{ "Firefox",	NULL,		NULL,			1 << 0,		False,		-1,		0.00 },
 	{ "Thunderbird",NULL,		"Thunderbird",	1 << 6,		False,		-1,		0.00 },
 	{ "Pidgin",		NULL,		NULL,			1 << 5,		False,		-1,		0.25 },
-	{ "Chromium",	NULL,		"Macaw",		1 << 4,		False,		-1,		0.00 },
+	{ "Chromium",	NULL,		"Macaw",		1 << 4,		False,		-1,		0.50 },
 
 	/* Default rule: */
 	{ NULL,			NULL,		NULL,			0,			False,		-1,		0.00 }
