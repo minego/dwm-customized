@@ -136,7 +136,7 @@ typedef struct {
 struct Monitor {
 	char ltsymbol[16];
 	float mfact;
-	float rfact;
+	float colfact[3];
 	int nmaster;
 	int num;
 	int by;               /* bar geometry */
@@ -833,7 +833,6 @@ createmon(void) {
 	m->tagset[0] = m->tagset[1] = 1;
 	m->maintag[0] = m->maintag[1] = 1;
 	m->mfact = mfact;
-	m->rfact = rfact;
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->showtab = showtab;
@@ -842,6 +841,9 @@ createmon(void) {
 	m->ntabs = 0;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
+	m->colfact[0] = colfact[0];
+	m->colfact[1] = colfact[1];
+	m->colfact[2] = colfact[2];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
 	return m;
 }

@@ -17,14 +17,19 @@
 	master client is not included in the calculation.
 */
 static const float lfact				= 0.75;
+
+/* Minimum number of clients in the right column before the left column is shown */
 static const unsigned int mintclcount	= 4;
+
+/* The relative factors for the size of each column */
+static const float colfact[3]			= { 0.2, 0.5, 0.3 };
 
 void mtcl(Monitor *m)
 {
 	int				x, y, h, w, bw;
 	int				masterw, leftw, rightw, leftn, rightn;
 	unsigned int	i, n;
-	float			sfacts, l, r;
+	float			sfacts, colfacts, l, r;
 	Client			*c, *cwas;
 
 	/* Count the windows and the client factor */
@@ -38,8 +43,12 @@ void mtcl(Monitor *m)
 		return;
 	}
 
+	for (i = 0; i < 3; i++) {
+		colfacts += m->colfact[i];
+	}
+
 	c		= nexttiled(m->clients);
-	masterw	= m->mfact * m->ww;
+	masterw	= (m->ww / colfacts) * m->colfact[1];
 	bw		= (2 * c->bw);
 	l		= lfact;
 	n--;
@@ -73,8 +82,8 @@ void mtcl(Monitor *m)
 		leftn	= n - i;
 	}
 
-	rightw		= (m->ww - masterw) * selmon->rfact;
-	leftw		= (m->ww - masterw) - rightw;
+	rightw	= (m->ww / colfacts) * m->colfact[2];
+	leftw	= (m->ww - masterw) - rightw;
 
 	if (!leftn) {
 		rightw	= m->ww - masterw;
@@ -86,7 +95,6 @@ void mtcl(Monitor *m)
 	}
 
 	/* Master */
-	// TODO Add support for a variable number of master clients?
 	x = m->wx;
 	y = m->wy,
 	w = m->ww;
@@ -167,31 +175,31 @@ void mtcl(Monitor *m)
 	}
 }
 
-/* A value >= 1.0 sets the rfact to that value - 1.0 */
-// TODO Replace mfact entirely with an array colfact on the monitor
-void setrfact(const Arg *arg)
+/* A value >= 1.0 sets that colfact to that value - 1.0 */
+void setcolfact(const Arg *arg)
 {
+	int		index = 1;
+
 	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
 		return;
 	}
 
-	if (!selmon->sel || 0 == selmon->sel->column) {
-		/* Master window is selected, so resize the mfact */
-		setmfact(arg);
-		return;
+	index += selmon->sel->column;
+	if (index < 0 || index > 2) {
+		index = 1;
 	}
 
 	if (arg->f >= 1.0) {
-		selmon->rfact = arg->f - 1.0;
+		selmon->colfact[index] = arg->f - 1.0;
 	} else {
 		/* Adjust the argument based on the selected column */
-		selmon->rfact += (arg->f * selmon->sel->column);
+		selmon->colfact[index] += arg->f;
 	}
 
-	if (selmon->rfact < 0.1) {
-		selmon->rfact = 0.1;
-	} else if (selmon->rfact > 0.9) {
-		selmon->rfact = 0.9;
+	if (selmon->colfact[index] < 0.1) {
+		selmon->colfact[index] = 0.1;
+	} else if (selmon->colfact[index] > 0.9) {
+		selmon->colfact[index] = 0.9;
 	}
 	arrange(selmon);
 }
