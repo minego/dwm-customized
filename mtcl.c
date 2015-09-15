@@ -1,5 +1,3 @@
-#define LEFT_PORTION		3
-
 /*
 	Modified version of http://dwm.suckless.org/patches/three-column originally
 	created by Chris Truett. This version places more windows in the left
@@ -9,17 +7,31 @@
 	and will be given less screen space.
 */
 
+/*
+	Factor of client count to be placed in left column vs right column.
+
+	A value of 0 will place all clients in the right column. A value of 1 will
+	put all clients in the left column.
+
+	Calculations are done based on the cfact value for each client, and the
+	master client is not included in the calculation.
+*/
+static const float lfact				= 0.75;
+static const unsigned int mintclcount	= 4;
+
 void mtcl(Monitor *m)
 {
 	int				x, y, h, w, bw;
 	int				masterw, leftw, rightw, leftn, rightn;
 	unsigned int	i, n;
-	float			sfacts;
+	float			sfacts, l, r;
 	Client			*c, *cwas;
 
-	/* Count the windows */
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
-		;
+	/* Count the windows and the client factor */
+	for (n = 0, sfacts = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+		if (n > 0) {
+			sfacts += c->cfact;
+		}
 	}
 
 	if (n == 0) {
@@ -29,28 +41,43 @@ void mtcl(Monitor *m)
 	c		= nexttiled(m->clients);
 	masterw	= m->mfact * m->ww;
 	bw		= (2 * c->bw);
+	l		= lfact;
+
+	if (m->ww < 1920) {
+		/* On small screens keep everything on the right */
+		l = 0.0;
+	}
+	if (n < mintclcount) {
+		/* Require a minimum of 4 clients to show both columns */
+		if (l < 0.5) {
+			l = 0.0;
+		} else {
+			l = 1.0;
+		}
+	}
 
 	/* Calculate the number of clients in each column */
 	n--;
 	if (n == 0) {
 		rightn	= 0;
 		leftn	= 0;
-	} else if (n < LEFT_PORTION || m->ww < 1920) {
-		/* Use 2 columns if screen is less than 1920 wide */
-		rightn	= n;
-		leftn	= 0;
 	} else {
-		rightn	= n / LEFT_PORTION;
-		if ((n % LEFT_PORTION) > 1) {
-			/* Round up */
-			rightn++;
-		}
+		r = (1.0 - l) * sfacts;
 
-		leftn	= n - rightn;
+		cwas = c;
+		sfacts = 0;
+		for (i = 0; c && sfacts <= r; c = nexttiled(c->next), i++) {
+			sfacts += c->cfact;
+		}
+		c = cwas;
+
+		rightn	= i;
+		leftn	= n - i;
 	}
 
 	rightw		= (m->ww - masterw) * selmon->rfact;
 	leftw		= (m->ww - masterw) - rightw;
+
 	if (!leftn) {
 		rightw	= m->ww - masterw;
 		leftw	= 0;
@@ -143,6 +170,7 @@ void mtcl(Monitor *m)
 }
 
 /* A value >= 1.0 sets the rfact to that value - 1.0 */
+// TODO Replace mfact entirely with an array colfact on the monitor
 void setrfact(const Arg *arg)
 {
 	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
