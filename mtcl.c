@@ -14,22 +14,48 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 {
 	Client	*c;
 	int		i, y, h;
-	int		bw;
+	int		wh		= m->wh;
 	float	cfacts	= 0;
 
 	if (!count || !first || !(c = nexttiled(first))) {
 		return(first);
 	}
 
+	/* 1st pass to calculate the total cfact */
 	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
 		cfacts += c->cfact;
 	}
 	c = nexttiled(first);
 
+	/* 2nd pass to calculate heights taking into account minh and maxh */
 	y = m->wy;
 	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
-		bw = 2 * c->bw;
-		resize(c, x, y, w - bw, ((m->wh / cfacts) * c->cfact) - bw, False);
+		h = ((wh / cfacts) * c->cfact) - c->bw;
+
+		if (c->maxh && h > c->maxh) {
+			c->h = c->maxh;
+		} else if (c->minh && h < c->minh) {
+			c->h = c->minh;
+		} else {
+			c->h = 0;
+			continue;
+		}
+
+		cfacts -= c->cfact;
+		wh -= c->h + c->bw;
+	}
+	c = nexttiled(first);
+
+	/* 2nd pass to position clients */
+	y = m->wy;
+	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
+		if (c->h) {
+			h = c->h;
+		} else {
+			h = ((wh / cfacts) * c->cfact) - c->bw;
+		}
+
+		resize(c, x, y, w - c->bw, h, False);
 
 		h = HEIGHT(c);
 		if (h < m->wh) {
