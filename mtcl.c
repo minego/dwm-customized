@@ -119,7 +119,7 @@ void mtcl(Monitor *m)
 	c = mtclColumn(m, c, rightn, m->wx + masterw + leftw, rightw);
 
 	/* left column */
-	c = mtclColumn(m, c, rightn, m->wx, leftw);
+	c = mtclColumn(m, c, leftn, m->wx, leftw);
 }
 
 /* A value >= 1.0 sets that colfact to that value - 1.0 */
