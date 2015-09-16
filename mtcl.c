@@ -60,6 +60,8 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 		if (c->maxw && cw > c->maxw) {
 			/* Don't make a window bigger than it's max hint size */
 			cw = c->maxw;
+		} else if (c->minw && cw < c->minw) {
+			cw = c->minw;
 		}
 
 		resize(c, x, y, cw, ch, False);
