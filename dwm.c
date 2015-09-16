@@ -169,6 +169,7 @@ typedef struct {
 	unsigned int tags;
 	Bool isfloating;
 	int monitor;
+	Bool isLeft;
 	float cfact;
 } Rule;
 
@@ -402,6 +403,9 @@ applyrules(Client *c) {
 		{
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
+			if (r->isLeft) {
+				c->isLeft = True;
+			}
 			if (r->cfact >= 0.25 && r->cfact <= 4.0) {
 				c->cfact = r->cfact;
 			}

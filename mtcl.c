@@ -13,7 +13,8 @@ static const float colfact[3]			= { 0.2, 0.5, 0.3 };
 static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 {
 	Client	*c;
-	int		i, y, h;
+	int		i, y;
+	int		cw, ch;
 	int		wh		= m->wh;
 	float	cfacts	= 0;
 
@@ -30,11 +31,11 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 	/* 2nd pass to calculate heights taking into account minh and maxh */
 	y = m->wy;
 	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
-		h = ((wh / cfacts) * c->cfact) - c->bw;
+		ch = ((wh / cfacts) * c->cfact) - c->bw;
 
-		if (c->maxh && h > c->maxh) {
+		if (c->maxh && ch > c->maxh) {
 			c->h = c->maxh;
-		} else if (c->minh && h < c->minh) {
+		} else if (c->minh && ch < c->minh) {
 			c->h = c->minh;
 		} else {
 			c->h = 0;
@@ -50,16 +51,22 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 	y = m->wy;
 	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
 		if (c->h) {
-			h = c->h;
+			ch = c->h;
 		} else {
-			h = ((wh / cfacts) * c->cfact) - c->bw;
+			ch = ((wh / cfacts) * c->cfact) - c->bw;
 		}
 
-		resize(c, x, y, w - c->bw, h, False);
+		cw = w - c->bw;
+		if (c->maxw && cw > c->maxw) {
+			/* Don't make a window bigger than it's max hint size */
+			cw = c->maxw;
+		}
 
-		h = HEIGHT(c);
-		if (h < m->wh) {
-			y = c->y + h;
+		resize(c, x, y, cw, ch, False);
+
+		ch = HEIGHT(c);
+		if (ch < m->wh) {
+			y = c->y + ch;
 		}
 	}
 
