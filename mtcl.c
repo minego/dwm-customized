@@ -7,187 +7,143 @@
 	and will be given less screen space.
 */
 
-/*
-	Factor of client count to be placed in left column vs right column.
-
-	A value of 0 will place all clients in the right column. A value of 1 will
-	put all clients in the left column.
-
-	Calculations are done based on the cfact value for each client, and the
-	master client is not included in the calculation.
-*/
-static const float lfact				= 0.75;
-
-/* Minimum number of clients in the right column before the left column is shown */
-static const unsigned int mintclcount	= 4;
-
 /* The relative factors for the size of each column */
 static const float colfact[3]			= { 0.2, 0.5, 0.3 };
 
-void mtcl(Monitor *m)
+static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 {
-	int				x, y, h, w, bw;
-	int				masterw, leftw, rightw, leftn, rightn;
-	unsigned int	i, n;
-	float			sfacts, colfacts, l, r;
-	Client			*c, *cwas;
+	Client	*c;
+	int		i, y, h;
+	int		bw;
+	float	cfacts	= 0;
 
-	/* Count the windows and the client factor */
-	for (n = 0, sfacts = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
-		if (n > 0) {
-			sfacts += c->cfact;
+	if (!count || !first || !(c = nexttiled(first))) {
+		return(first);
+	}
+
+	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
+		cfacts += c->cfact;
+	}
+	c = nexttiled(first);
+
+	y = m->wy;
+	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
+		bw = 2 * c->bw;
+		resize(c, x, y, w - bw, ((m->wh / cfacts) * c->cfact) - bw, False);
+
+		h = HEIGHT(c);
+		if (h < m->wh) {
+			y = c->y + h;
 		}
 	}
 
-	if (n == 0) {
+	return(c);
+}
+
+void mtcl(Monitor *m)
+{
+	int				masterw, leftw, rightw;
+	unsigned int	i, leftn, rightn, mastern;
+	float			colfacts;
+	Client			*c, *nc, *pc;
+
+	/*
+		Reorder windows so that all windows in the left column are after those
+		in the right column in the list.
+	*/
+	pc = nexttiled(m->clients);
+	nc = nexttiled(pc ? pc->next : NULL); /* Skip the master window */
+	while ((c = nc)) {
+		nc = nexttiled(c->next);
+
+		if (c->isLeft && nc && !nc->isLeft) {
+			/* swap c and nc */
+			c->next = nc->next;
+			nc->next = c;
+
+			if (pc) {
+				pc->next = nc;
+			} else {
+				m->clients = nc;
+			}
+
+			c = nc;
+			nc = c->next;
+		}
+
+		/* Keep track of the previous client */
+		pc = c;
+	}
+
+	/* Count the windows and the client factor */
+	leftn = rightn = mastern = 0;
+	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
+		if (mastern > 0) {
+			if (c->isLeft) {
+				leftn++;
+			} else {
+				rightn++;
+			}
+		} else {
+			mastern++;
+		}
+	}
+
+	if (mastern == 0) {
 		return;
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (colfacts = 0, i = 0; i < 3; i++) {
 		colfacts += m->colfact[i];
 	}
 
 	c		= nexttiled(m->clients);
 	masterw	= (m->ww / colfacts) * m->colfact[1];
-	bw		= (2 * c->bw);
-	l		= lfact;
-	n--;
-
-	/*
-		Disable the left column if the total screen size is too small or if
-		there are not enough clients for it to make sense.
-	*/
-	if (m->ww < 1920 || n < mintclcount) {
-		l = 0.0;
-	}
-
-	/* Calculate the number of clients in each column */
-	if (n == 0) {
-		rightn	= 0;
-		leftn	= 0;
-	} else {
-		r = (1.0 - l) * sfacts;
-
-		cwas = c;
-		sfacts = 0;
-		for (i = 0; c && sfacts <= r; c = nexttiled(c->next), i++) {
-			sfacts += c->cfact;
-		}
-		c = cwas;
-
-		if (i > n) {
-			i = n;
-		}
-		rightn	= i;
-		leftn	= n - i;
-	}
 
 	rightw	= (m->ww / colfacts) * m->colfact[2];
 	leftw	= (m->ww - masterw) - rightw;
 
 	if (!leftn) {
-		rightw	= m->ww - masterw;
+		masterw	+= leftw;
 		leftw	= 0;
 	}
 	if (!rightn) {
+		masterw	+= rightw;
 		rightw	= 0;
-		leftw	= 0;
 	}
 
 	/* Master */
-	x = m->wx;
-	y = m->wy,
-	w = m->ww;
-	h = m->wh - bw;
-
-	if (leftn) {
-		x += leftw;
-		w -= (leftw + bw);
-	}
-	if (rightn) {
-		w -= (rightw + bw);
-	}
-
-	resize(c, x, y, w, h, False);
-	c->column = 0; /* center column */
-
-	if (!leftn && !rightn) {
-		return;
-	}
-
-	c = nexttiled(c->next);
+	c = mtclColumn(m, c, mastern, m->wx + leftw, masterw);
 
 	/* Right column */
-	if (rightn > 0) {
-		sfacts = 0;
-
-		cwas = c;
-		for (i = 0; c && i < rightn; c = nexttiled(c->next), i++) {
-			sfacts += c->cfact;
-		}
-		c = cwas;
-
-		x = m->wx + masterw + leftw;
-		y = m->wy;
-		w = rightw;
-
-		for (i = 0; c && i < rightn; c = nexttiled(c->next), i++) {
-			resize(c,
-					x, y,
-					w - bw,
-					((m->wh / sfacts) * c->cfact) + bw,
-					False);
-			c->column = 1; /* right column */
-
-			h = HEIGHT(c);
-			if (h < m->wh) {
-				y = c->y + h;
-			}
-		}
-	}
+	c = mtclColumn(m, c, rightn, m->wx + masterw + leftw, rightw);
 
 	/* left column */
-	if (leftn > 0) {
-		sfacts = 0;
-
-		cwas = c;
-		for (i = 0; c && i < leftn; c = nexttiled(c->next), i++) {
-			sfacts += c->cfact;
-		}
-		c = cwas;
-
-		x = m->wx;
-		y = m->wy;
-		w = leftw;
-
-		for (i = 0; c && i < leftn; c = nexttiled(c->next), i++) {
-			resize(c, x, y,
-					w - bw,
-					((m->wh / sfacts) * c->cfact) + bw,
-					False);
-			c->column = -1; /* left column */
-
-			h = HEIGHT(c);
-			if (h < m->wh) {
-				y = c->y + h;
-			}
-		}
-	}
+	c = mtclColumn(m, c, rightn, m->wx, leftw);
 }
 
 /* A value >= 1.0 sets that colfact to that value - 1.0 */
 void setcolfact(const Arg *arg)
 {
+	Client	*master;
 	int		index = 1;
 
 	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
 		return;
 	}
 
-	index += selmon->sel->column;
-	if (index < 0 || index > 2) {
+	master = nexttiled(selmon->clients);
+	if (selmon->sel == master) {
+		/* master */
+		index = 0;
+	} else if (selmon->sel->isLeft) {
+		/* left */
+		index = -1;
+	} else {
+		/* right */
 		index = 1;
 	}
+	index++;
 
 	if (arg->f >= 1.0) {
 		selmon->colfact[index] = arg->f - 1.0;
@@ -200,6 +156,16 @@ void setcolfact(const Arg *arg)
 		selmon->colfact[index] = 0.1;
 	} else if (selmon->colfact[index] > 0.9) {
 		selmon->colfact[index] = 0.9;
+	}
+	arrange(selmon);
+}
+
+static void pushleft(const Arg *arg)
+{
+	if (selmon && selmon->sel) {
+		selmon->sel->isLeft = !selmon->sel->isLeft;
+
+		focus(selmon->sel);
 	}
 	arrange(selmon);
 }

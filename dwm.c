@@ -110,7 +110,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
-	int column;
+	Bool isLeft; /* If set the client should be placed in the left column */
 	unsigned int tags;
 	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;

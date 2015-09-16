@@ -61,7 +61,7 @@ static const Bool resizehints = False; /* True means respect size hints in tiled
 
 static const Layout layouts[] = {		/* First entry is default */
 	/* symbol		arrange function */
-    { "|||",		mtcl			},
+    { "=O=",		mtcl			},
 	{ "[]=",		tile			},
 	// { "><>",		NULL			},
 	{ "[M]",		monocle			},
@@ -117,6 +117,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,				XK_k,      pushup,         {0} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
+	{ MODKEY|ShiftMask,             XK_Tab,    pushleft,       {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,						XK_w,      killclient,     {0} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
