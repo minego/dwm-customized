@@ -80,7 +80,7 @@ void mtcl(Monitor *m)
 	int				masterw, leftw, rightw;
 	unsigned int	i, leftn, rightn, mastern;
 	float			colfacts;
-	Client			*c, *nc, *pc;
+	Client			*c, *nc, *pc, *lc, **lp;
 
 	/*
 		Reorder windows so that all windows in the left column are after those
@@ -88,26 +88,27 @@ void mtcl(Monitor *m)
 	*/
 	pc = nexttiled(m->clients);
 	nc = nexttiled(pc ? pc->next : NULL); /* Skip the master window */
+	lc = NULL;
+	lp = &lc;
+
 	while ((c = nc)) {
 		nc = nexttiled(c->next);
 
-		if (c->isLeft && nc && !nc->isLeft) {
-			/* swap c and nc */
-			c->next = nc->next;
-			nc->next = c;
+		if (c->isLeft) {
+			detach(c);
+			c->next = NULL;
 
-			if (pc) {
-				pc->next = nc;
-			} else {
-				m->clients = nc;
-			}
-
-			c = nc;
-			nc = c->next;
+			*lp = c;
+			lp = &c->next;
+		} else {
+			/* Keep track of the last client */
+			pc = c;
 		}
+	}
 
-		/* Keep track of the previous client */
-		pc = c;
+	if (lc && pc) {
+		/* Reattach the list of left clients to the end */
+		pc->next = lc;
 	}
 
 	/* Count the windows and the client factor */
