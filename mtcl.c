@@ -108,6 +108,7 @@ void mtcl(Monitor *m)
 
 	if (lc && pc) {
 		/* Reattach the list of left clients to the end */
+		*lp = pc->next;
 		pc->next = lc;
 	}
 
