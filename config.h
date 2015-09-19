@@ -21,8 +21,8 @@ static const char *fonts[] = {
 #define selbgcolor					"#555555"
 #define selfgcolor					"#eeeeee"
 
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const unsigned int gappx  = 5;			/* gap between windows */
+static const unsigned int borderpx	= 1;        /* border pixel of windows */
+static const unsigned int gappx		= 5;		/* gap between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayspacing = 2;   /* systray spacing */
@@ -44,14 +44,18 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
-	/* class		instance	title			tags mask	isfloating	monitor	isLeft cfact */
-	{ "Firefox",	NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00 },
-	{ "Thunderbird",NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00 },
-	{ "Pidgin",		NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50 },
-	{ "Chromium",	NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75 },
+	/* class		instance	title			tags mask	isfloating	monitor	isLeft cfact	opacity */
+	{ "Thunderbird",NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00,	-1  },
+	{ "Pidgin",		NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50,	0.8 },
+	{ "Chromium",	NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
+
+	{ "Firefox",	NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00,	-1  },
+	{ "Chromium",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "mpv",		NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "Thunderbird",NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
 
 	/* Default rule: */
-	{ NULL,			NULL,		NULL,			0,			False,		-1,		False, 0.00 }
+	{ NULL,			NULL,		NULL,			0,			False,		-1,		False, 0.00,	0.8  }
 };
 
 /* layout(s) */
