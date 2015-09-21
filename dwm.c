@@ -244,7 +244,7 @@ static void resizebarwin(Monitor *m);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void resizerequest(XEvent *e);
-static void restack(Monitor *m);
+static void restack(Monitor *m, Bool doWarp);
 static void run(void);
 static void scan(void);
 static Bool sendevent(Window w, Atom proto, int m, long d0, long d1, long d2, long d3, long d4);
@@ -506,7 +506,7 @@ arrange(Monitor *m) {
 	}
 	if(m) {
 		arrangemon(m);
-		restack(m);
+		restack(m, True);
 	} else for(m = mons; m; m = m->next)
 		arrangemon(m);
 }
@@ -1186,7 +1186,7 @@ enternotify(XEvent *e) {
 	else if(!c || c == selmon->sel)
 		return;
 	focus(c);
-	restack(selmon);
+	restack(selmon, False);
 }
 
 void
@@ -1288,7 +1288,7 @@ focusstack(const Arg *arg) {
 	}
 	if(c) {
 		focus(c);
-		restack(selmon);
+		restack(selmon, True);
 	}
 }
 
@@ -1301,7 +1301,7 @@ focuswin(const Arg* arg){
   };
   if(c) {
     focus(c);
-    restack(selmon);
+    restack(selmon, True);
   }
 }
 
@@ -1629,7 +1629,7 @@ movemouse(const Arg *arg) {
 		return;
 	if(c->isfullscreen) /* no support moving fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, False);
 	ocx = c->x;
 	ocy = c->y;
 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -1887,7 +1887,7 @@ resizemouse(const Arg *arg) {
 		return;
 	if(c->isfullscreen) /* no support resizing fullscreen windows by mouse */
 		return;
-	restack(selmon);
+	restack(selmon, False);
 	ocx = c->x;
 	ocy = c->y;
 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
@@ -1944,7 +1944,7 @@ resizerequest(XEvent *e) {
 }
 
 void
-restack(Monitor *m) {
+restack(Monitor *m, Bool doWarp) {
 	Client *c;
 	XEvent ev;
 	XWindowChanges wc;
@@ -1966,7 +1966,7 @@ restack(Monitor *m) {
 	}
 	XSync(dpy, False);
 	while(XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-	if (m == selmon && (m->tagset[m->seltags] & m->sel->tags))
+	if (doWarp && m == selmon && (m->tagset[m->seltags] & m->sel->tags))
 		warp(m->sel);
 }
 
