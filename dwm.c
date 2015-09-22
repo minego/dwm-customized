@@ -1186,7 +1186,7 @@ enternotify(XEvent *e) {
 	else if(!c || c == selmon->sel)
 		return;
 	focus(c);
-	restack(selmon, False);
+	if (!c->isfloating) restack(selmon, False);
 }
 
 void
