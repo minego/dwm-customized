@@ -44,18 +44,19 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
-	/* class		instance	title			tags mask	isfloating	monitor	isLeft cfact	opacity */
-	{ "Thunderbird",NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00,	-1  },
-	{ "Pidgin",		NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50,	0.8 },
-	{ "Chromium",	NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
+	/* class			instance	title			tags mask	isfloating	monitor	isLeft cfact	opacity */
+	{ "Thunderbird",	NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00,	-1  },
+	{ "Pidgin",			NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50,	0.8 },
+	{ "Chromium",		NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
 
-	{ "Firefox",	NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00,	-1  },
-	{ "Chromium",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
-	{ "mpv",		NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
-	{ "Thunderbird",NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "Firefox",		NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00,	-1  },
+	{ "Chromium",		NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "Google-chrome",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "mpv",			NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
+	{ "Thunderbird",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
 
 	/* Default rule: */
-	{ NULL,			NULL,		NULL,			0,			False,		-1,		False, 0.00,	0.8  }
+	{ NULL,				NULL,		NULL,			0,			False,		-1,		False, 0.00,	0.8  }
 };
 
 /* layout(s) */
