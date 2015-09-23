@@ -8,7 +8,7 @@
 /* appearance */
 static const char *fonts[] = {
 	// "terminus:size=16",
-    "ProggyTinyTT",
+	"ProggyTinyTT:antialias=false:autohint=false",
     "Sans:size=10.5",
     "VL Gothic:size=10.5",
     "WenQuanYi Micro Hei:size=10.5",
