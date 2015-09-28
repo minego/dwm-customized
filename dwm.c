@@ -1227,8 +1227,6 @@ focus(Client *c) {
 		attachstack(c);
 		grabbuttons(c, True);
 		XSetWindowBorder(dpy, c->win, scheme[SchemeSel].border->pix);
-		if (!c->isfloating)
-			XRaiseWindow(dpy, c->win);
 		setfocus(c);
 		if (c->opacity >= 0) {
 			window_opacity_set(c, 1.0);
