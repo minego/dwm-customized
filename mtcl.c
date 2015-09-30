@@ -31,7 +31,7 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 	/* 2nd pass to calculate heights taking into account minh and maxh */
 	y = m->wy;
 	for (i = 0; (i < count) && c; c = nexttiled(c->next), i++) {
-		ch = ((wh / cfacts) * c->cfact) - c->bw;
+		ch = ((wh / cfacts) * c->cfact) - (2 * c->bw);
 
 		if (c->maxh && ch > c->maxh) {
 			c->h = c->maxh;
@@ -43,7 +43,7 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 		}
 
 		cfacts -= c->cfact;
-		wh -= c->h + c->bw;
+		wh -= c->h + (2 * c->bw);
 	}
 	c = nexttiled(first);
 
@@ -53,10 +53,10 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 		if (c->h) {
 			ch = c->h;
 		} else {
-			ch = ((wh / cfacts) * c->cfact) - c->bw;
+			ch = ((wh / cfacts) * c->cfact) - (2 * c->bw);
 		}
 
-		cw = w - c->bw;
+		cw = w - (2 * c->bw);
 		if (c->maxw && cw > c->maxw) {
 			/* Don't make a window bigger than it's max hint size */
 			cw = c->maxw;
