@@ -47,7 +47,7 @@ static const Rule rules[] = {
 	/* class			instance	title			tags mask	isfloating	monitor	isLeft cfact	opacity */
 	{ "Thunderbird",	NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00,	-1  },
 	{ "Pidgin",			NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50,	0.8 },
-	{ "Chromium",		NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
+	{ "chromium",		NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
 
 	{ "Firefox",		NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00,	-1  },
 	{ "Chromium",		NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
