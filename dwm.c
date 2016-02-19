@@ -1223,6 +1223,10 @@ focus(Client *c) {
 			selmon = c->mon;
 		if(c->isurgent)
 			clearurgent(c);
+		if (!c->isfloating) {
+			/* Raise the focused window for the sake of shadows in compton */
+			XRaiseWindow(dpy, c->win);
+		}
 		detachstack(c);
 		attachstack(c);
 		grabbuttons(c, True);
