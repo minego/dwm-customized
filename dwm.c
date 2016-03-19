@@ -1867,11 +1867,33 @@ resizebarwin(Monitor *m) {
 void
 resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
+	int gapx, gapy, gapw, gaph;
 
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
+	/*
+		Set gapx and gapy as half of gappx. Change to zero for any edge that is
+		next to the edge of a monitor.
+	*/
+	gapx = gappx / 2; gapw = gappx - gapx;
+	gapy = gappx / 2; gaph = gappx - gapy;
+
+	if (c->mon->ww - (x + w) < 32) {
+		gapw = 0;
+	}
+	if (c->mon->wh - (y + h) < 32) {
+		gaph = 0;
+	}
+	if (x - c->mon->wx < 32) {
+		gapx = 0;
+	}
+	if (y - c->mon->wy < 32) {
+		gapy = 0;
+	}
+
+	c->oldx = c->x; c->x = wc.x = x + gapx;
+	c->oldy = c->y; c->y = wc.y = y + gapy;
+	c->oldw = c->w; c->w = wc.width = w - gapw;
+	c->oldh = c->h; c->h = wc.height = h - gaph;
+
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
