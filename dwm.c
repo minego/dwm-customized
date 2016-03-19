@@ -1876,28 +1876,29 @@ resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
 	int gapx, gapy, gapw, gaph;
 	int edges = 0;
+	int margin = gappx * 2;
 
 	/*
 		Set gapx and gapy as half of gappx. Change to zero for any edge that is
 		next to the edge of a monitor.
 	*/
-	gapx = gappx / 2; gapw = gappx - gapx;
-	gapy = gappx / 2; gaph = gappx - gapy;
+	gapx = gapy = gappx / 2;
+	gapw = gaph = gappx - gapx;
 
-	if ((c->mon->mx + c->mon->mw) - (x + w) < 5) {
+	if ((c->mon->mx + c->mon->mw) - (x + w) < margin) {
 		gapw = 0;
 		edges++;
 	}
-	if ((c->mon->my + c->mon->mh) - (y + h) < 5) {
+	if ((c->mon->my + c->mon->mh) - (y + h) < margin) {
 		gaph = 0;
 		edges++;
 	}
 
-	if (x - c->mon->mx < 5) {
+	if ((x - c->mon->mx) < margin) {
 		gapx = 0;
 		edges++;
 	}
-	if (y - c->mon->my < 5) {
+	if ((y - c->mon->my) < margin) {
 		gapy = 0;
 		edges++;
 	}
