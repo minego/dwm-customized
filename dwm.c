@@ -1213,6 +1213,8 @@ window_opacity_set(Client *c, double opacity) {
 
 void
 focus(Client *c) {
+	Client *fc;
+
 	if(!c || !ISVISIBLE(c))
 		for(c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
 	/* was if(selmon->sel) */
@@ -1223,10 +1225,7 @@ focus(Client *c) {
 			selmon = c->mon;
 		if(c->isurgent)
 			clearurgent(c);
-		if (!c->isfloating) {
-			/* Raise the focused window for the sake of shadows in compton */
-			XRaiseWindow(dpy, c->win);
-		}
+
 		detachstack(c);
 		attachstack(c);
 		grabbuttons(c, True);
@@ -1234,6 +1233,15 @@ focus(Client *c) {
 		setfocus(c);
 		if (c->opacity >= 0) {
 			window_opacity_set(c, 1.0);
+		}
+
+		/* Lower all non-floating windows except the selected one */
+		for(fc = selmon->clients; fc; fc = fc->next) {
+			if (fc->isfloating || fc == c) {
+				continue;
+			}
+
+			XLowerWindow(dpy, fc->win);
 		}
 	}
 	else {
@@ -1887,6 +1895,10 @@ resizeclient(Client *c, int x, int y, int w, int h) {
 	}
 	if (y - c->mon->wy < 32) {
 		gapy = 0;
+	}
+
+	if (c->isfloating) {
+		gapx = gapy = gaph = gapw = 0;
 	}
 
 	c->oldx = c->x; c->x = wc.x = x + gapx;
