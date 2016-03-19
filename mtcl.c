@@ -8,7 +8,7 @@
 */
 
 /* The relative factors for the size of each column */
-static const float colfact[3]			= { 0.2, 0.5, 0.3 };
+static const float colfact[3]			= { 0.1, 0.6, 0.3 };
 
 static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 {

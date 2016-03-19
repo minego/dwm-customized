@@ -254,7 +254,6 @@ static void setfocus(Client *c);
 static void setfullscreen(Client *c, Bool fullscreen);
 static void setlayout(const Arg *arg);
 static void setcfact(const Arg *arg);
-static void setmfact(const Arg *arg);
 static void setup(void);
 static void showhide(Client *c);
 static void sigchld(int unused);
@@ -1876,6 +1875,7 @@ void
 resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
 	int gapx, gapy, gapw, gaph;
+	int edges = 0;
 
 	/*
 		Set gapx and gapy as half of gappx. Change to zero for any edge that is
@@ -1884,27 +1884,32 @@ resizeclient(Client *c, int x, int y, int w, int h) {
 	gapx = gappx / 2; gapw = gappx - gapx;
 	gapy = gappx / 2; gaph = gappx - gapy;
 
-	if (c->mon->ww - (x + w) < 32) {
+	if ((c->mon->mx + c->mon->mw) - (x + w) < 5) {
 		gapw = 0;
+		edges++;
 	}
-	if (c->mon->wh - (y + h) < 32) {
+	if ((c->mon->my + c->mon->mh) - (y + h) < 5) {
 		gaph = 0;
-	}
-	if (x - c->mon->wx < 32) {
-		gapx = 0;
-	}
-	if (y - c->mon->wy < 32) {
-		gapy = 0;
+		edges++;
 	}
 
-	if (c->isfloating) {
+	if (x - c->mon->mx < 5) {
+		gapx = 0;
+		edges++;
+	}
+	if (y - c->mon->my < 5) {
+		gapy = 0;
+		edges++;
+	}
+
+	if (c->isfloating || edges >= 3) {
 		gapx = gapy = gaph = gapw = 0;
 	}
 
 	c->oldx = c->x; c->x = wc.x = x + gapx;
 	c->oldy = c->y; c->y = wc.y = y + gapy;
-	c->oldw = c->w; c->w = wc.width = w - gapw;
-	c->oldh = c->h; c->h = wc.height = h - gaph;
+	c->oldw = c->w; c->w = wc.width  = w - (gapx + gapw);
+	c->oldh = c->h; c->h = wc.height = h - (gapy + gaph);
 
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
@@ -2166,20 +2171,6 @@ void setcfact(const Arg *arg) {
 	else if(f < 0.25 || f > 4.0)
 		return;
 	c->cfact = f;
-	arrange(selmon);
-}
-
-/* arg > 1.0 will set mfact absolutly */
-void
-setmfact(const Arg *arg) {
-	float f;
-
-	if(!arg || !selmon->lt[selmon->sellt]->arrange)
-		return;
-	f = arg->f < 1.0 ? arg->f + selmon->mfact : arg->f - 1.0;
-	if(f < 0.1 || f > 0.9)
-		return;
-	selmon->mfact = f;
 	arrange(selmon);
 }
 
