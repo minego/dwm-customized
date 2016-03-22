@@ -48,6 +48,7 @@ static const Rule rules[] = {
 	{ "Thunderbird",	NULL,		"Thunderbird",	1 << 6,		False,		-1,		False, 0.00,	-1  },
 	{ "Pidgin",			NULL,		NULL,			1 << 5,		False,		-1,		True,  0.50,	0.8 },
 	{ "chromium",		NULL,		"Macaw",		1 << 4,		False,		-1,		True,  0.75,	0.8 },
+	{ "st-256color",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	0.8 },
 
 	{ "Firefox",		NULL,		NULL,			1 << 0,		False,		-1,		False, 0.00,	-1  },
 	{ "Chromium",		NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
@@ -56,7 +57,7 @@ static const Rule rules[] = {
 	{ "Thunderbird",	NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  },
 
 	/* Default rule: */
-	{ NULL,				NULL,		NULL,			0,			False,		-1,		False, 0.00,	0.8  }
+	{ NULL,				NULL,		NULL,			0,			False,		-1,		False, 0.00,	-1  }
 };
 
 /* layout(s) */
