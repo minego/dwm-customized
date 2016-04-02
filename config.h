@@ -121,7 +121,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,				XK_j,      pushdown,       {0} },
 	{ MODKEY|ShiftMask,				XK_k,      pushup,         {0} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
-	{ MODKEY,                       XK_Tab,    comboview,      {0} },
+	{ MODKEY,                       XK_Tab,    comboview,      {-1} },
 	{ MODKEY|ShiftMask,             XK_Tab,    pushleft,       {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,						XK_w,      killclient,     {0} },
