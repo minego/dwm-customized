@@ -44,6 +44,8 @@
 #include "drw.h"
 #include "util.h"
 
+#define MAX_TAGLEN 16
+
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -147,7 +149,9 @@ struct Monitor {
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
-	unsigned int maintag[2];
+	unsigned int createtag[2]; /* Create windows on the last tag directly selected, not all selected */
+	unsigned int remembered[MAX_TAGLEN]; /* Remembered tagsets */
+
 	Bool showbar;
 	Bool showtab;
 	Bool topbar;
@@ -367,16 +371,36 @@ combotag(const Arg *arg) {
 }
 
 void
+remembertag(void) {
+	int curtag = selmon->createtag[selmon->seltags];
+
+	if (curtag < MAX_TAGLEN) {
+		selmon->remembered[curtag] = selmon->tagset[selmon->seltags];
+	}
+}
+
+void
 comboview(const Arg *arg) {
-	unsigned newtags = arg->ui & TAGMASK;
+	unsigned newtags = (1 << arg->i) & TAGMASK;
+	int active = (selmon->createtag[selmon->seltags] == arg->i);
+
+	remembertag();
+
 	if (combo) {
 		selmon->tagset[selmon->seltags] |= newtags;
 	} else {
 		selmon->seltags ^= 1;	/*toggle tagset*/
 		combo = 1;
 		if (newtags) {
-			selmon->tagset[selmon->seltags] = newtags;
-			selmon->maintag[selmon->seltags] = newtags;
+			if (active) {
+				/* Select twice to isolate the tag */
+				selmon->tagset[selmon->seltags] = newtags;
+			} else if (arg->i < MAX_TAGLEN) {
+				/* Restore whatever was previously on this tag */
+				selmon->tagset[selmon->seltags] = newtags | selmon->remembered[arg->i];
+			}
+
+			selmon->createtag[selmon->seltags] = arg->i;
 		}
 	}
 	focus(NULL);
@@ -424,7 +448,7 @@ applyrules(Client *c) {
 		XFree(ch.res_name);
 
 	c->tags = c->tags & TAGMASK;
-	if (!c->tags) c->tags = c->mon->maintag[c->mon->seltags];
+	if (!c->tags) c->tags = ((1 << c->mon->createtag[c->mon->seltags]) & TAGMASK);
 	if (!c->tags) c->tags = c->mon->tagset[c->mon->seltags];
 }
 
@@ -838,8 +862,8 @@ createmon(void) {
 
 	if(!(m = (Monitor *)calloc(1, sizeof(Monitor))))
 		die("fatal: could not malloc() %u bytes\n", sizeof(Monitor));
-	m->tagset[0] = m->tagset[1] = 1;
-	m->maintag[0] = m->maintag[1] = 1;
+	m->remembered[0] = m->tagset[0] = m->tagset[1] = 1;
+	m->createtag[0] = 0;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
 	m->showbar = showbar;

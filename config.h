@@ -40,7 +40,6 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 
 
 /* tagging */
-#define MAX_TAGLEN 16
 static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
@@ -80,10 +79,10 @@ static const Layout layouts[] = {		/* First entry is default */
 /* key definitions */
 #define MODKEY Mod1Mask
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      comboview,      {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
-	{ MODKEY|ShiftMask,             KEY,      combotag,       {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+	{ MODKEY,                       KEY,      comboview,      { .i = TAG} }, \
+	{ MODKEY|ControlMask,           KEY,      toggleview,     { .ui = 1 << TAG} }, \
+	{ MODKEY|ShiftMask,             KEY,      combotag,       { .ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      { .ui = 1 << TAG} },
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
@@ -122,7 +121,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,				XK_j,      pushdown,       {0} },
 	{ MODKEY|ShiftMask,				XK_k,      pushup,         {0} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
-	{ MODKEY,                       XK_Tab,    view,           {0} },
+	{ MODKEY,                       XK_Tab,    comboview,      {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,    pushleft,       {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,						XK_w,      killclient,     {0} },
