@@ -150,7 +150,11 @@ struct Monitor {
 	unsigned int sellt;
 	unsigned int tagset[2];
 	unsigned int createtag[2]; /* Create windows on the last tag directly selected, not all selected */
-	unsigned int remembered[MAX_TAGLEN]; /* Remembered tagsets */
+	Client *zoomed[2];
+	struct {
+		unsigned int tagset;
+		Client *zoomed;
+	} remembered[MAX_TAGLEN];
 
 	Bool showbar;
 	Bool showtab;
@@ -375,7 +379,8 @@ remembertag(void) {
 	int curtag = selmon->createtag[selmon->seltags];
 
 	if (curtag < MAX_TAGLEN) {
-		selmon->remembered[curtag] = selmon->tagset[selmon->seltags];
+		selmon->remembered[curtag].tagset = selmon->tagset[selmon->seltags];
+		selmon->remembered[curtag].zoomed = selmon->clients;
 	}
 }
 
@@ -383,6 +388,7 @@ void
 comboview(const Arg *arg) {
 	unsigned newtags = (1 << arg->i) & TAGMASK;
 	int active = (selmon->createtag[selmon->seltags] == arg->i);
+	Client *c;
 
 	remembertag();
 
@@ -397,10 +403,26 @@ comboview(const Arg *arg) {
 				selmon->tagset[selmon->seltags] = newtags;
 			} else if (arg->i < MAX_TAGLEN) {
 				/* Restore whatever was previously on this tag */
-				selmon->tagset[selmon->seltags] = newtags | selmon->remembered[arg->i];
+				selmon->tagset[selmon->seltags] = newtags | selmon->remembered[arg->i].tagset;
+				selmon->zoomed[selmon->seltags] = selmon->remembered[arg->i].zoomed;
 			}
 
 			selmon->createtag[selmon->seltags] = arg->i;
+		}
+
+		/*
+			Zoom the correct client
+
+			Verify that c is in fact still a valid pointer first though.
+		*/
+		for (c = selmon->clients; c; c = c->next) {
+			if (c == selmon->zoomed[selmon->seltags]) {
+				break;
+			}
+		}
+
+		if (c && ISVISIBLE(c)) {
+			pop(c);
 		}
 	}
 	focus(NULL);
@@ -862,7 +884,7 @@ createmon(void) {
 
 	if(!(m = (Monitor *)calloc(1, sizeof(Monitor))))
 		die("fatal: could not malloc() %u bytes\n", sizeof(Monitor));
-	m->remembered[0] = m->tagset[0] = m->tagset[1] = 1;
+	m->remembered[0].tagset = m->tagset[0] = m->tagset[1] = 1;
 	m->createtag[0] = 0;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
