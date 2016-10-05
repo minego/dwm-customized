@@ -387,28 +387,38 @@ remembertag(void) {
 void
 comboview(const Arg *arg) {
 	unsigned newtags = (1 << arg->i) & TAGMASK;
+	unsigned int newcreate;
 	int active = (selmon->createtag[selmon->seltags] == arg->i);
 	Client *c;
 
 	remembertag();
 
-	if (combo) {
+	if (combo && -1 != arg->i) {
 		selmon->tagset[selmon->seltags] |= newtags;
 	} else {
 		selmon->seltags ^= 1;	/*toggle tagset*/
-		combo = 1;
-		if (newtags) {
-			if (active) {
-				/* Select twice to isolate the tag */
-				selmon->tagset[selmon->seltags] = newtags;
-			} else if (arg->i < MAX_TAGLEN) {
-				/* Restore whatever was previously on this tag */
-				selmon->tagset[selmon->seltags] = newtags | selmon->remembered[arg->i].tagset;
-				selmon->zoomed[selmon->seltags] = selmon->remembered[arg->i].zoomed;
-			}
 
-			selmon->createtag[selmon->seltags] = arg->i;
+		if (-1 == arg->i) {
+			/* A specific tag was not specified */
+			newtags = selmon->tagset[selmon->seltags];
+			newcreate = selmon->createtag[selmon->seltags];
+			active = 0;
+		} else {
+			newcreate = arg->i;
 		}
+
+		combo = 1;
+
+		if (active) {
+			/* Select twice to isolate the tag */
+			selmon->tagset[selmon->seltags] = newtags;
+		} else if (arg->i < MAX_TAGLEN) {
+			/* Restore whatever was previously on this tag */
+			selmon->tagset[selmon->seltags] = newtags | selmon->remembered[newcreate].tagset;
+			selmon->zoomed[selmon->seltags] = selmon->remembered[newcreate].zoomed;
+		}
+
+		selmon->createtag[selmon->seltags] = newcreate;
 
 		/*
 			Zoom the correct client
@@ -421,7 +431,7 @@ comboview(const Arg *arg) {
 			}
 		}
 
-		if (c && ISVISIBLE(c)) {
+		if (c) {
 			pop(c);
 		}
 	}
