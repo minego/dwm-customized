@@ -16,7 +16,7 @@ XINERAMAFLAGS = -DXINERAMA
 
 # includes and libs
 INCS = -I${X11INC} -I/usr/include/freetype2
-LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} -lfontconfig -lXft
+LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} -lfontconfig -lXft ${FREETYPELIBS} -lX11-xcb -lxcb -lxcb-res
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=2 -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
