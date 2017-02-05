@@ -242,6 +242,7 @@ static void incnmaster(const Arg *arg);
 static int isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
+static void unswallowclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
@@ -593,6 +594,14 @@ arrangemon(Monitor *m) {
 
 void
 attach(Client *c) {
+	Client *t;
+
+	for (t = c->mon->clients; t; t = t->next) {
+		if (t == c) {
+			return;
+		}
+	}
+
 	c->next = c->mon->clients;
 	c->mon->clients = c;
 }
@@ -610,6 +619,14 @@ attachaside(Client *c) {
 
 void
 attachstack(Client *c) {
+	Client *t;
+
+	for (t = c->mon->stack; t; t = t->snext) {
+		if (t == c) {
+			return;
+		}
+	}
+
 	c->snext = c->mon->stack;
 	c->mon->stack = c;
 }
@@ -632,6 +649,7 @@ swallow(Client *p, Client *c)
 	Window w = p->win;
 	p->win = c->win;
 	c->win = w;
+
 	updatetitle(p);
 	arrange(p->mon);
 	configure(p);
@@ -1594,6 +1612,44 @@ killclient(const Arg *arg) {
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
 	}
+}
+
+void
+unswallowclient(const Arg *arg) {
+	Client *c, *p;
+
+	if (!(p = selmon->sel)) {
+		return;
+	}
+
+	if (!(c = p->swallowing)) {
+		return;
+	}
+
+	p->swallowing = NULL;
+
+	Window w = p->win;
+	p->win = c->win;
+	c->win = w;
+
+	XMapWindow(dpy, p->win);
+	XMapWindow(dpy, c->win);
+
+	attach(p);
+	attach(c);
+	attachstack(p);
+	attachstack(c);
+
+	updatetitle(c);
+	updatetitle(p);
+
+	arrange(selmon);
+
+	configure(c);
+	configure(p);
+
+	setclientstate(c, NormalState);
+	setclientstate(p, NormalState);
 }
 
 void
