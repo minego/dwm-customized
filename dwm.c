@@ -475,6 +475,7 @@ applyrules(Client *c) {
 		{
 			c->isterminal = r->isterminal;
 			c->isfloating = r->isfloating;
+			c->noswallow = r->noswallow;
 			if (c->opacity == -99) c->opacity = r->opacity;
 			c->tags |= r->tags;
 			if (r->isLeft) {
@@ -616,7 +617,7 @@ attachstack(Client *c) {
 void
 swallow(Client *p, Client *c)
 {
-	if (c->noswallow || c->isterminal)
+	if (c->noswallow || c->isterminal || c->isfloating)
 		return;
 
 	detach(c);
