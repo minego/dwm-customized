@@ -121,6 +121,7 @@ struct Client {
 	Client *next;
 	Client *snext;
 	Client *swallowing;
+	Client *wasswallowing;
 	Monitor *mon;
 	Window win;
 	double opacity;
@@ -242,7 +243,7 @@ static void incnmaster(const Arg *arg);
 static int isdescprocess(pid_t p, pid_t c);
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
-static void unswallowclient(const Arg *arg);
+static void toggleswallow(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
@@ -1007,6 +1008,8 @@ detach(Client *c) {
 
 	for(tc = &c->mon->clients; *tc && *tc != c; tc = &(*tc)->next);
 	*tc = c->next;
+
+	c->next = NULL;
 }
 
 void
@@ -1020,6 +1023,8 @@ detachstack(Client *c) {
 		for(t = c->mon->stack; t && !ISVISIBLE(t); t = t->snext);
 		c->mon->sel = t;
 	}
+
+	c->snext = NULL;
 }
 
 Monitor *
@@ -1615,7 +1620,7 @@ killclient(const Arg *arg) {
 }
 
 void
-unswallowclient(const Arg *arg) {
+toggleswallow(const Arg *arg) {
 	Client *c, *p;
 
 	if (!(p = selmon->sel)) {
@@ -1623,9 +1628,14 @@ unswallowclient(const Arg *arg) {
 	}
 
 	if (!(c = p->swallowing)) {
+		if ((c = p->wasswallowing)) {
+			swallow(p, c);
+		}
+
 		return;
 	}
 
+	p->wasswallowing = p->swallowing;
 	p->swallowing = NULL;
 
 	Window w = p->win;
