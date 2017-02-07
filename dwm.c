@@ -1642,6 +1642,8 @@ toggleswallow(const Arg *arg) {
 	p->win = c->win;
 	c->win = w;
 
+	c->tags = p->tags;
+
 	XMapWindow(dpy, p->win);
 	XMapWindow(dpy, c->win);
 
