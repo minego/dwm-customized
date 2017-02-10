@@ -467,7 +467,6 @@ applyrules(Client *c) {
 	XGetClassHint(dpy, c->win, &ch);
 	class    = ch.res_class ? ch.res_class : broken;
 	instance = ch.res_name  ? ch.res_name  : broken;
-	c->opacity = -99; /* Only apply opacity once */
 
 	for(i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
@@ -478,7 +477,7 @@ applyrules(Client *c) {
 			c->isterminal = r->isterminal;
 			c->isfloating = r->isfloating;
 			c->noswallow = r->noswallow;
-			if (c->opacity == -99) c->opacity = r->opacity;
+			c->opacity = r->opacity;
 			c->tags |= r->tags;
 			if (r->isLeft) {
 				c->isLeft = True;
