@@ -96,7 +96,7 @@ static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont,
 static const char *termcmd[]	= { "myterm", NULL };
 static const char *menucmd[]	= {
 									"j4-dmenu-desktop",
-									"--display-binary",
+									// "--display-binary",
 									"--term=myterm",
 									"--dmenu=~/bin/dmenu.sh",
 									NULL
