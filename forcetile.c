@@ -9,7 +9,7 @@
 */
 static void forcetile(const Arg *arg)
 {
-	if (!selmon->sel) {
+	if (!selmon->sel || selmon->sel->isfullscreen) {
 		return;
 	}
 
