@@ -49,6 +49,7 @@ static const Rule rules[] = {
 	{ NULL,				NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False },
 
 	{ "XVkbd",			NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	0.6,	True  },
+	{ "Onboard",		NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	0.6,	True  },
 	{ "Pidgin",			NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.50,	0.8,	False },
 	{ "chromium",		NULL,		"Macaw",		1 << 4,		False,		False,			-1,		True,  0.75,	0.8,	False },
 	{ "st-256color",	NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False },
