@@ -2056,46 +2056,52 @@ resizebarwin(Monitor *m) {
 	XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, w, bh);
 }
 
-void
-resizeclient(Client *c, int x, int y, int w, int h) {
-	XWindowChanges wc;
-	int gapx, gapy, gapw, gaph;
-	int edges = 0;
-	int margin = gappx * 2;
+void resizeclient(Client *c, int x, int y, int w, int h)
+{
+	XWindowChanges		wc;
+	int					gapN, gapE, gapW;
+	int					edges	= 0;
+	int					margin	= gappx * 2;
 
 	/*
-		Set gapx and gapy as half of gappx. Change to zero for any edge that is
-		next to the edge of a monitor.
+		Clients are generally arranged relative to the client above them, so
+		include the entire gap to account for the one below it.
 	*/
-	gapx = gapy = gappx / 2;
-	gapw = gaph = gappx - gapx;
+	gapN = gappx;
 
+	gapE = gappx / 2;
+	gapW = gappx - gapE;
+
+
+	/*
+		Adjust gaps for any edge of a client that is next to the edge of the
+		monitor.
+	*/
 	if ((c->mon->mx + c->mon->mw) - (x + w) < margin) {
-		gapw = 0;
+		gapE = 0;
 		edges++;
 	}
 	if ((c->mon->my + c->mon->mh) - (y + h) < margin) {
-		gaph = 0;
 		edges++;
 	}
 
 	if ((x - c->mon->mx) < margin) {
-		gapx = 0;
+		gapW = 0;
 		edges++;
 	}
 	if ((y - c->mon->my) < margin) {
-		gapy = 0;
+		gapN = 0;
 		edges++;
 	}
 
-	if (c->isfloating || edges >= 3) {
-		gapx = gapy = gaph = gapw = 0;
+	if (c->isfloating || edges >= 4) {
+		gapN = gapE = gapW = 0;
 	}
 
-	c->oldx = c->x; c->x = wc.x = x + gapx;
-	c->oldy = c->y; c->y = wc.y = y + gapy;
-	c->oldw = c->w; c->w = wc.width  = w - (gapx + gapw);
-	c->oldh = c->h; c->h = wc.height = h - (gapy + gaph);
+	c->oldx = c->x; c->x = wc.x = x + gapW;
+	c->oldy = c->y; c->y = wc.y = y + gapN;
+	c->oldw = c->w; c->w = wc.width  = w - (gapW + gapE);
+	c->oldh = c->h; c->h = wc.height = h - (gapN);
 
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
