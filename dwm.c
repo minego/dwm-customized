@@ -116,7 +116,7 @@ struct Client {
 	int bw, oldbw;
 	Bool isLeft; /* If set the client should be placed in the left column */
 	unsigned int tags;
-	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow;
+	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow, nofocus;
 	pid_t pid;
 	Client *next;
 	Client *snext;
@@ -188,6 +188,7 @@ typedef struct {
 	float cfact;
 	double opacity;
 	Bool noswallow;
+	Bool nofocus;
 } Rule;
 
 typedef struct Systray   Systray;
@@ -477,6 +478,7 @@ applyrules(Client *c) {
 			c->isterminal = r->isterminal;
 			c->isfloating = r->isfloating;
 			c->noswallow = r->noswallow;
+			c->nofocus = r->nofocus;
 			c->opacity = r->opacity;
 			c->tags |= r->tags;
 			if (r->isLeft) {
@@ -1312,6 +1314,11 @@ enternotify(XEvent *e) {
 	if((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != root)
 		return;
 	c = wintoclient(ev->window);
+
+	if (c && c->nofocus) {
+		return;
+	}
+
 	m = c ? c->mon : wintomon(ev->window);
 	if(m != selmon) {
 		unfocus(selmon->sel, True);
@@ -1348,6 +1355,10 @@ window_opacity_set(Client *c, double opacity) {
 void
 focus(Client *c) {
 	Client *fc;
+
+	if (c && c->nofocus) {
+		return;
+	}
 
 	if(!c || !ISVISIBLE(c))
 		for(c = selmon->stack; c && !ISVISIBLE(c); c = c->snext);
@@ -1418,17 +1429,17 @@ focusstack(const Arg *arg) {
 	if(!selmon->sel)
 		return;
 	if(arg->i > 0) {
-		for(c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
+		for(c = selmon->sel->next; c && (!ISVISIBLE(c) || c->nofocus); c = c->next);
 		if(!c)
-			for(c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
+			for(c = selmon->clients; c && (!ISVISIBLE(c) || c->nofocus); c = c->next);
 	}
 	else {
 		for(i = selmon->clients; i != selmon->sel; i = i->next)
-			if(ISVISIBLE(i))
+			if(ISVISIBLE(i) && !c->nofocus)
 				c = i;
 		if(!c)
 			for(; i; i = i->next)
-				if(ISVISIBLE(i))
+				if(ISVISIBLE(i) && !c->nofocus)
 					c = i;
 	}
 	if(c) {
@@ -1704,7 +1715,7 @@ manage(Window w, XWindowAttributes *wa) {
 
 	updatewindowtype(c);
 	if (c->isfloating) {
-		c->bw = c->isfullscreen ? 0 : borderpx;
+		c->bw = (c->isfullscreen || c->nofocus) ? 0 : borderpx;
 	} else {
 		c->bw = 0;
 		for(t = c->mon->clients; t; t = c->next) {
