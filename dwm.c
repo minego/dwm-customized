@@ -1439,11 +1439,11 @@ focusstack(const Arg *arg) {
 	}
 	else {
 		for(i = selmon->clients; i != selmon->sel; i = i->next)
-			if(ISVISIBLE(i) && !c->isKeyboard)
+			if(ISVISIBLE(i) && !i->isKeyboard)
 				c = i;
 		if(!c)
 			for(; i; i = i->next)
-				if(ISVISIBLE(i) && !c->isKeyboard)
+				if(ISVISIBLE(i) && !i->isKeyboard)
 					c = i;
 	}
 	if(c) {
