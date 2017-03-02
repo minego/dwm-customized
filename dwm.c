@@ -116,7 +116,7 @@ struct Client {
 	int bw, oldbw;
 	Bool isLeft; /* If set the client should be placed in the left column */
 	unsigned int tags;
-	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow, nofocus;
+	Bool isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow, isKeyboard;
 	pid_t pid;
 	Client *next;
 	Client *snext;
@@ -188,7 +188,7 @@ typedef struct {
 	float cfact;
 	double opacity;
 	Bool noswallow;
-	Bool nofocus;
+	Bool isKeyboard;
 } Rule;
 
 typedef struct Systray   Systray;
@@ -478,7 +478,7 @@ applyrules(Client *c) {
 			c->isterminal = r->isterminal;
 			c->isfloating = r->isfloating;
 			c->noswallow = r->noswallow;
-			c->nofocus = r->nofocus;
+			c->isKeyboard = r->isKeyboard;
 			c->opacity = r->opacity;
 			c->tags |= r->tags;
 			if (r->isLeft) {
@@ -506,6 +506,10 @@ Bool
 applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 	Bool baseismin;
 	Monitor *m = c->mon;
+
+	if (c->isKeyboard) {
+		return(False);
+	}
 
 	/* set minimum possible */
 	*w = MAX(1, *w);
@@ -917,7 +921,7 @@ configurerequest(XEvent *e) {
 	XConfigureRequestEvent *ev = &e->xconfigurerequest;
 	XWindowChanges wc;
 
-	if((c = wintoclient(ev->window))) {
+	if((c = wintoclient(ev->window)) && !c->isKeyboard) {
 		if(ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
 		else if(c->isfloating || !selmon->lt[selmon->sellt]->arrange) {
@@ -1315,7 +1319,7 @@ enternotify(XEvent *e) {
 		return;
 	c = wintoclient(ev->window);
 
-	if (c && c->nofocus) {
+	if (c && c->isKeyboard) {
 		return;
 	}
 
@@ -1356,7 +1360,7 @@ void
 focus(Client *c) {
 	Client *fc;
 
-	if (c && c->nofocus) {
+	if (c && c->isKeyboard) {
 		return;
 	}
 
@@ -1429,17 +1433,17 @@ focusstack(const Arg *arg) {
 	if(!selmon->sel)
 		return;
 	if(arg->i > 0) {
-		for(c = selmon->sel->next; c && (!ISVISIBLE(c) || c->nofocus); c = c->next);
+		for(c = selmon->sel->next; c && (!ISVISIBLE(c) || c->isKeyboard); c = c->next);
 		if(!c)
-			for(c = selmon->clients; c && (!ISVISIBLE(c) || c->nofocus); c = c->next);
+			for(c = selmon->clients; c && (!ISVISIBLE(c) || c->isKeyboard); c = c->next);
 	}
 	else {
 		for(i = selmon->clients; i != selmon->sel; i = i->next)
-			if(ISVISIBLE(i) && !c->nofocus)
+			if(ISVISIBLE(i) && !c->isKeyboard)
 				c = i;
 		if(!c)
 			for(; i; i = i->next)
-				if(ISVISIBLE(i) && !c->nofocus)
+				if(ISVISIBLE(i) && !c->isKeyboard)
 					c = i;
 	}
 	if(c) {
@@ -1704,18 +1708,26 @@ manage(Window w, XWindowAttributes *wa) {
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
 
-	if(c->x + WIDTH(c) > c->mon->mx + c->mon->mw)
-		c->x = c->mon->mx + c->mon->mw - WIDTH(c);
-	if(c->y + HEIGHT(c) > c->mon->my + c->mon->mh)
-		c->y = c->mon->my + c->mon->mh - HEIGHT(c);
-	c->x = MAX(c->x, c->mon->mx);
-	/* only fix client y-offset, if the client center might cover the bar */
-	c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
-	           && (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
+	/*
+		Adjust the monitor height if this is a keyboard
+	*/
+	if (c->isKeyboard) {
+		c->y = c->mon->my + c->mon->mh - c->h;
+		c->mon->mh -= HEIGHT(c);
+	} else {
+		if(c->x + WIDTH(c) > c->mon->mx + c->mon->mw)
+			c->x = c->mon->mx + c->mon->mw - WIDTH(c);
+		if(c->y + HEIGHT(c) > c->mon->my + c->mon->mh)
+			c->y = c->mon->my + c->mon->mh - HEIGHT(c);
+		c->x = MAX(c->x, c->mon->mx);
+		/* only fix client y-offset, if the client center might cover the bar */
+		c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
+				   && (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
+	}
 
 	updatewindowtype(c);
 	if (c->isfloating) {
-		c->bw = (c->isfullscreen || c->nofocus) ? 0 : borderpx;
+		c->bw = (c->isfullscreen || c->isKeyboard) ? 0 : borderpx;
 	} else {
 		c->bw = 0;
 		for(t = c->mon->clients; t; t = c->next) {
@@ -2035,6 +2047,10 @@ void
 resize(Client *c, int x, int y, int w, int h, Bool interact) {
 	int		n;
 
+	if (c && c->isKeyboard) {
+		return;
+	}
+
 	n = c->mon->mx + c->mon->mw;
 	if (x + w + 1 + (2 * c->bw) >= n) {
 		w = n - x - c->bw;
@@ -2073,6 +2089,10 @@ void resizeclient(Client *c, int x, int y, int w, int h)
 	int					gapN, gapE, gapW;
 	int					edges	= 0;
 	int					margin	= gappx * 2;
+
+	if (c->isKeyboard) {
+		return;
+	}
 
 	/*
 		Clients are generally arranged relative to the client above them, so
@@ -2663,6 +2683,10 @@ void
 unmanage(Client *c, Bool destroyed) {
 	Monitor *m = c->mon;
 	XWindowChanges wc;
+
+	if (c->isKeyboard) {
+		updategeom();
+	}
 
 	if (c->swallowing) {
 		unswallow(c);

@@ -43,7 +43,7 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
-	/* class			instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	NoFocus */
+	/* class			instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	IsKeyboard */
 
 	/* Default rule: (Must be first) */
 	{ NULL,				NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
