@@ -43,22 +43,23 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
-	/* class			instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	IsKeyboard */
+	/* class				instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	IsKeyboard */
 
 	/* Default rule: (Must be first) */
-	{ NULL,				NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ NULL,					NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
 
-	{ "XVkbd",			NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	0.6,	True,		True},
-	{ "Onboard",		NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	1.0,	True,		True},
+	{ "XVkbd",				NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	0.6,	True,		True  },
+	{ "Onboard",			NULL,		NULL,			0,			True,		False,			-1,		False, 0.00,	-1,		True,		True  },
+	{ "Onboard-settings",	NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
 
-	{ "Pidgin",			NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.50,	0.8,	False,		False },
-	{ "chromium",		NULL,		"Macaw",		1 << 4,		False,		False,			-1,		True,  0.75,	0.8,	False,		False },
-	{ "st-256color",	NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False,		False },
+	{ "Pidgin",				NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.50,	0.8,	False,		False },
+	{ "chromium",			NULL,		"Macaw",		1 << 4,		False,		False,			-1,		True,  0.75,	0.8,	False,		False },
+	{ "st-256color",		NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False,		False },
 
-	{ "Firefox",		NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "Chromium",		NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "Google-chrome",	NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "mpv",			NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False }
+	{ "Firefox",			NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ "Chromium",			NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ "Google-chrome",		NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ "mpv",				NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False }
 };
 
 /* layout(s) */
