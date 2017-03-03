@@ -2085,11 +2085,17 @@ resizebarwin(Monitor *m) {
 
 void resizeclient(Client *c, int x, int y, int w, int h)
 {
+	int					lgappx	= gappx;
 	XWindowChanges		wc;
 	int					gapN, gapE, gapW;
 	int					edges	= 0;
-	int					margin	= gappx * 2;
+	int					margin;
 
+	if (c->mon->mw <= 1024 || c->mon->mh <= 1024) {
+		lgappx = 0;
+	}
+
+	margin = lgappx * 2;
 	if (c->isKeyboard) {
 		return;
 	}
@@ -2098,10 +2104,10 @@ void resizeclient(Client *c, int x, int y, int w, int h)
 		Clients are generally arranged relative to the client above them, so
 		include the entire gap to account for the one below it.
 	*/
-	gapN = gappx;
+	gapN = lgappx;
 
-	gapE = gappx / 2;
-	gapW = gappx - gapE;
+	gapE = lgappx / 2;
+	gapW = lgappx - gapE;
 
 
 	/*
