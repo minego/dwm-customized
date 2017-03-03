@@ -67,13 +67,16 @@ static const float mfact      = 0.60; /* factor of master area size [0.05..0.95]
 static const int nmaster      = 1;    /* number of clients in master area */
 static const Bool resizehints = False; /* True means respect size hints in tiled resizals */
 
+#include "horizgrid.c"
 static const Layout layouts[] = {		/* First entry is default */
 	/* symbol		arrange function */
     { "=O=",		mtcl			},
-	{ "[]=",		tile			},
-	// { "><>",		NULL			},
 	{ "[M]",		monocle			},
-	{ "###",		gaplessgrid		},
+	{ "###",		horizgrid		},
+
+	// { "[]=",		tile			},
+	// { "><>",		NULL			},
+	// { "###",		gaplessgrid		},
 	{ NULL,			NULL			}
 };
 
@@ -129,9 +132,8 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,						XK_w,      killclient,     {0} },
 	{ MODKEY,						XK_z,      toggleswallow,  {0} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-    { MODKEY,                       XK_g,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[1]} },
+    { MODKEY,                       XK_g,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_space,  nextlayout,     {0} },
 	{ MODKEY,						XK_t,      forcetile,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  setlayout,      {.v = &layouts[0]} },

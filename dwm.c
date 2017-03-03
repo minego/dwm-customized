@@ -2827,6 +2827,13 @@ updateclientlist() {
 Bool
 updategeom(void) {
 	Bool dirty = False;
+	Bool isPortrait, wasPortrait;
+
+	if (selmon && selmon->mw < selmon->mh) {
+		wasPortrait = True;
+	} else {
+		wasPortrait = False;
+	}
 
 #ifdef XINERAMA
 	if(XineramaIsActive(dpy)) {
@@ -2903,6 +2910,24 @@ updategeom(void) {
 		selmon = mons;
 		selmon = wintomon(root);
 	}
+
+	if (selmon && selmon->mw < selmon->mh) {
+		isPortrait = True;
+	} else {
+		isPortrait = False;
+	}
+
+	if (wasPortrait != isPortrait) {
+		Arg		arg;
+
+		if (!isPortrait) {
+			arg.v = &layouts[0];
+		} else {
+			arg.v = &layouts[2];
+		}
+		setlayout(&arg);
+	}
+
 	return dirty;
 }
 
