@@ -17,7 +17,7 @@ static const char *fonts[] = {
 #define normbordercolor				"#444444"
 #define normbgcolor					"#222222"
 #define normfgcolor					"#bbbbbb"
-#define selbordercolor				"#ff0000"
+#define selbordercolor				"#d23d3d"
 #define selbgcolor					"#555555"
 #define selfgcolor					"#eeeeee"
 
