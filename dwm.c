@@ -1053,6 +1053,10 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	short isCode = 0;
 	Clr * color = drw->scheme->fg;
 
+	while ((*stext && isspace(*stext))) {
+		stext++;
+	}
+
 	len = strlen(stext) + 1 ;
 	char *text = (char*) malloc(sizeof(char)*len);
 	char *p = text;
@@ -1234,7 +1238,7 @@ drawbar(Monitor *m) {
 			drw_text(drw, x, 0, w, bh, NULL, 0);
 		}
 
-		drawarrow(drw, &arrowscheme, &scheme[SchemeNorm], (x + w - 5), bh, 1, 0);
+		drawarrow(drw, &arrowscheme, &scheme[SchemeNorm], (x + w - (bh / 2)), bh, 1, 0);
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
