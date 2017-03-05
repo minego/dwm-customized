@@ -1209,6 +1209,7 @@ drawbar(Monitor *m) {
 	x += bh / 2;
 
 	drw_setscheme(drw, &scheme[SchemeNorm]);
+	drw_rect(drw, x, 0, selmon->ww - x, bh, 1, 0, 0);
 
 	xx = x;
 	if(m == selmon) /* status is only drawn on selected monitor */
