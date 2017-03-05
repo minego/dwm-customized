@@ -8,6 +8,7 @@
 /* appearance */
 static const char *fonts[] = {
 	"xos4 Terminess Powerline:size=9:antialias=false:autohint=false",
+	"Ubuntu Mono derivative Powerline:size=9",
 	// "terminus:size=16",
 	"ProggyTinyTT:antialias=false:autohint=false",
     "Sans:size=10.5",
@@ -19,8 +20,8 @@ static const char *fonts[] = {
 #define normbgcolor					"#222222"
 #define normfgcolor					"#bbbbbb"
 #define selbordercolor				"#d23d3d"
-#define selbgcolor					"#555555"
-#define selfgcolor					"#eeeeee"
+#define selbgcolor					"#e1aa5d"
+#define selfgcolor					"#000000"
 
 static const unsigned int borderpx	= 1;        /* border pixel of windows */
 static const unsigned int gappx		= 24;		/* gap between windows */

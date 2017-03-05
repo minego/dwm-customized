@@ -216,6 +216,39 @@ drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int
 		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, x+1, y+1, dx, dx);
 }
 
+void
+drw_arrow(Drw *drw, int x, int y, unsigned int w, unsigned int h, int backwards) {
+	XPoint	points[3];
+
+	if(!drw || !drw->fontcount || !drw->scheme)
+		return;
+
+	XSetForeground(drw->dpy, drw->gc, drw->scheme->bg->pix);
+	XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
+
+	if (drw->scheme->fg->pix == drw->scheme->bg->pix) {
+		return;
+	}
+
+	XSetForeground(drw->dpy, drw->gc, drw->scheme->fg->pix);
+
+	if (backwards) {
+		points[0].x = x + w;
+		points[1].x = x;
+		points[2].x = x + w;
+	} else {
+		points[0].x = x;
+		points[1].x = x + w;
+		points[2].x = x;
+	}
+
+	points[0].y = y;
+	points[1].y = y + (h / 2);
+	points[2].y = y + h;
+
+	XFillPolygon(drw->dpy, drw->drawable, drw->gc, points, 3, Nonconvex, CoordModeOrigin);
+}
+
 int
 drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *text, int invert) {
 	char buf[1024];

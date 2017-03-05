@@ -1159,6 +1159,7 @@ drawbar(Monitor *m) {
 	int x, xx, w;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
+	ClrScheme arrowtheme;
 
 	resizebarwin(m);
 	for(c = m->clients; c; c = c->next) {
@@ -1166,19 +1167,49 @@ drawbar(Monitor *m) {
 		if(c->isurgent)
 			urg |= c->tags;
 	}
+
+	arrowtheme.fg = scheme[SchemeNorm].bg;
+
 	x = 0;
 	for(i = 0; i < LENGTH(tags); i++) {
-		w = TEXTW(tags[i]);
+		if (m->tagset[m->seltags] & 1 << i) {
+			arrowtheme.bg = scheme[SchemeSel].bg;
+		} else {
+			arrowtheme.bg = scheme[SchemeNorm].bg;
+		}
+		drw_setscheme(drw, &arrowtheme);
+		drw_arrow(drw, x, 0, bh / 2, bh, 0);
+		arrowtheme.fg = arrowtheme.bg;
+		x += bh / 2;
+
 		drw_setscheme(drw, m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
+		w = TEXTW(tags[i]);
 		drw_text(drw, x, 0, w, bh, tags[i], urg & 1 << i);
 		drw_rect(drw, x, 0, w, bh, m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
 		           occ & 1 << i, urg & 1 << i);
 		x += w;
 	}
+
+	arrowtheme.bg = scheme[SchemeNorm].bg;
+	drw_setscheme(drw, &arrowtheme);
+	drw_arrow(drw, x, 0, bh / 2, bh, 0);
+	arrowtheme.fg = arrowtheme.bg;
+	x += bh / 2;
+
+
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, &scheme[SchemeNorm]);
 	drw_text(drw, x, 0, w, bh, m->ltsymbol, 0);
 	x += w;
+
+	arrowtheme.bg = m == selmon ? scheme[SchemeSel].bg : scheme[SchemeNorm].bg;
+	drw_setscheme(drw, &arrowtheme);
+	drw_arrow(drw, x, 0, bh / 2, bh, 0);
+	arrowtheme.fg = arrowtheme.bg;
+	x += bh / 2;
+
+	drw_setscheme(drw, &scheme[SchemeNorm]);
+
 	xx = x;
 	if(m == selmon) /* status is only drawn on selected monitor */
 		x = drawstatusbar(m, bh, stext, xx);
@@ -1189,15 +1220,19 @@ drawbar(Monitor *m) {
 	}
 	if((w = x - xx) > bh) {
 		x = xx;
+
+		drw_setscheme(drw, m == selmon ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
 		if(m->sel) {
-			drw_setscheme(drw, m == selmon ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
 			drw_text(drw, x, 0, w, bh, m->sel->name, 0);
 			drw_rect(drw, x, 0, w, bh, m->sel->isfixed, m->sel->isfloating, 0);
-		}
-		else {
-			drw_setscheme(drw, &scheme[SchemeNorm]);
+		} else {
 			drw_text(drw, x, 0, w, bh, NULL, 0);
 		}
+
+		arrowtheme.bg = m == selmon ? scheme[SchemeSel].bg : scheme[SchemeNorm].bg;
+		arrowtheme.fg = scheme[SchemeNorm].bg;
+		drw_setscheme(drw, &arrowtheme);
+		drw_arrow(drw, x + w, 0, bh / 2, bh, 1);
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
