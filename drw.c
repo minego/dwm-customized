@@ -223,14 +223,16 @@ drw_arrow(Drw *drw, int x, int y, unsigned int w, unsigned int h, int backwards)
 	if(!drw || !drw->fontcount || !drw->scheme)
 		return;
 
-	XSetForeground(drw->dpy, drw->gc, drw->scheme->bg->pix);
+	XSetForeground(drw->dpy, drw->gc,
+		backwards ? drw->scheme->fg->pix : drw->scheme->bg->pix);
 	XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
 
 	if (drw->scheme->fg->pix == drw->scheme->bg->pix) {
 		return;
 	}
 
-	XSetForeground(drw->dpy, drw->gc, drw->scheme->fg->pix);
+	XSetForeground(drw->dpy, drw->gc,
+		backwards ? drw->scheme->bg->pix : drw->scheme->fg->pix);
 
 	if (backwards) {
 		points[0].x = x + w;

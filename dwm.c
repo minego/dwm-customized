@@ -1154,12 +1154,34 @@ drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	return ret;
 }
 
+/*
+	Draw an arrow to transition between one color scheme and another.
+
+	This will also set the scheme.
+*/
+static int drawarrow(Drw *drw, ClrScheme *arrowscheme, ClrScheme *scheme, int x, int bh, int backwards, int invert)
+{
+	/* Set the new bg */
+	arrowscheme->bg = invert ? scheme->fg : scheme->bg;
+	drw_setscheme(drw, arrowscheme);
+
+	/* Draw the arrow */
+	drw_arrow(drw, x, 0, bh / 2, bh, backwards);
+
+	/* The bg becomes the fg for the next arrow */
+	arrowscheme->fg = arrowscheme->bg;
+
+	/* Set the scheme */
+	drw_setscheme(drw, scheme);
+	return(bh / 2);
+}
+
 void
 drawbar(Monitor *m) {
 	int x, xx, w;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
-	ClrScheme arrowtheme;
+	ClrScheme arrowscheme;
 
 	resizebarwin(m);
 	for(c = m->clients; c; c = c->next) {
@@ -1168,21 +1190,14 @@ drawbar(Monitor *m) {
 			urg |= c->tags;
 	}
 
-	arrowtheme.fg = scheme[SchemeNorm].bg;
+	arrowscheme.fg = scheme[SchemeNorm].bg;
 
 	x = 0;
 	for(i = 0; i < LENGTH(tags); i++) {
-		if (m->tagset[m->seltags] & 1 << i) {
-			arrowtheme.bg = scheme[SchemeSel].bg;
-		} else {
-			arrowtheme.bg = scheme[SchemeNorm].bg;
-		}
-		drw_setscheme(drw, &arrowtheme);
-		drw_arrow(drw, x, 0, bh / 2, bh, 0);
-		arrowtheme.fg = arrowtheme.bg;
-		x += bh / 2;
+		x += drawarrow(drw, &arrowscheme,
+				m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm],
+				x, bh, 0, urg & 1 << i);
 
-		drw_setscheme(drw, m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
 		w = TEXTW(tags[i]);
 		drw_text(drw, x, 0, w, bh, tags[i], urg & 1 << i);
 		drw_rect(drw, x, 0, w, bh, m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
@@ -1190,27 +1205,16 @@ drawbar(Monitor *m) {
 		x += w;
 	}
 
-	arrowtheme.bg = scheme[SchemeNorm].bg;
-	drw_setscheme(drw, &arrowtheme);
-	drw_arrow(drw, x, 0, bh / 2, bh, 0);
-	arrowtheme.fg = arrowtheme.bg;
-	x += bh / 2;
-
+	x+= drawarrow(drw, &arrowscheme, &scheme[SchemeNorm], x, bh, 0, 0);
 
 	w = blw = TEXTW(m->ltsymbol);
-	drw_setscheme(drw, &scheme[SchemeNorm]);
 	drw_text(drw, x, 0, w, bh, m->ltsymbol, 0);
 	x += w;
 
-	arrowtheme.bg = m == selmon ? scheme[SchemeSel].bg : scheme[SchemeNorm].bg;
-	drw_setscheme(drw, &arrowtheme);
-	drw_arrow(drw, x, 0, bh / 2, bh, 0);
-	arrowtheme.fg = arrowtheme.bg;
-	x += bh / 2;
+	x+= drawarrow(drw, &arrowscheme,
+			(m == selmon) ? &scheme[SchemeSel] : &scheme[SchemeNorm], x, bh, 0, 0);
 
 	drw_setscheme(drw, &scheme[SchemeNorm]);
-	drw_rect(drw, x, 0, selmon->ww - x, bh, 1, 0, 0);
-
 	xx = x;
 	if(m == selmon) /* status is only drawn on selected monitor */
 		x = drawstatusbar(m, bh, stext, xx);
@@ -1230,10 +1234,7 @@ drawbar(Monitor *m) {
 			drw_text(drw, x, 0, w, bh, NULL, 0);
 		}
 
-		arrowtheme.bg = m == selmon ? scheme[SchemeSel].bg : scheme[SchemeNorm].bg;
-		arrowtheme.fg = scheme[SchemeNorm].bg;
-		drw_setscheme(drw, &arrowtheme);
-		drw_arrow(drw, x + w, 0, bh / 2, bh, 1);
+		drawarrow(drw, &arrowscheme, &scheme[SchemeNorm], (x + w - 5), bh, 1, 0);
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
