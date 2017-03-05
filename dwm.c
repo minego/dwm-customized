@@ -1310,9 +1310,7 @@ drawbar(Monitor *m) {
 		x = drawstatusbar(m, bh, stext, xx);
 	else
 		x = m->ww;
-	if(showsystray && m == systraytomon(m)) {
-		x -= getsystraywidth();
-	}
+
 	if((w = x - xx) > bh) {
 		x = xx;
 
