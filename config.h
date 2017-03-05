@@ -7,6 +7,7 @@
 
 /* appearance */
 static const char *fonts[] = {
+	"xos4 Terminess Powerline:size=9:antialias=false:autohint=false",
 	// "terminus:size=16",
 	"ProggyTinyTT:antialias=false:autohint=false",
     "Sans:size=10.5",
