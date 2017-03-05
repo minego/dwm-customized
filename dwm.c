@@ -1050,6 +1050,7 @@ dirtomon(int dir) {
 
 int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	int ret, w, x;
+	int pw = TEXTW("");
 	ClrScheme *prevscheme = drw->scheme;
 	ClrScheme scheme;
 	char *text;
@@ -1090,7 +1091,7 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 			next:		Next text chunk
 		*/
 		if (value && *value) {
-			w += TEXTW(value);
+			w += (TEXTW(value) - pw);
 		}
 
 		/* The f command moves forward the specified number of pixels */
@@ -1120,7 +1121,7 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	XSetForeground(drw->dpy, drw->gc, drw->scheme->bg->pix);
 	x_drw_rect(drw, ret, 0, w, bh);
 
-	/* Draw the bar this time */
+	/* Text pass */
 	x = ret;
 	next = text;
 	while ((value = next)) {
@@ -1143,8 +1144,55 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 		*/
 		if (value && *value) {
 			w = TEXTW(value);
-			drw_text(drw, x, 0, w, bh, value, 0);
-			x += w;
+			drw_text(drw, x - (pw / 2), 0, w, bh, value, 0);
+			x += (w - pw);
+		}
+
+		if (cmd) {
+			switch (*cmd) {
+				case 'f': /* move foreward */
+					x += atoi(cmd + 1);
+					break;
+
+				case 'c': /* set color */
+					tmp = cmd + 1;
+					scheme.fg = drw_clr_create(drw, tmp);
+					break;
+			}
+		}
+
+		/* Cleanup */
+		if (cmd) {
+			cmd[-1] = '^';
+		}
+		if (next) {
+			next[-1] = '^';
+		}
+	}
+
+	/* Graphs pass */
+	x = ret;
+	next = text;
+	while ((value = next)) {
+		if ((cmd = strchr(value, '^'))) {
+			*cmd = '\0';
+			cmd++;
+
+			if ((next = strchr(cmd, '^'))) {
+				*next = '\0';
+				next++;
+			}
+		} else {
+			next = NULL;
+		}
+
+		/*
+			value:		Current text chunk
+			cmd:		Current command
+			next:		Next text chunk
+		*/
+		if (value && *value) {
+			x += (TEXTW(value) - pw);
 		}
 
 		if (cmd) {
