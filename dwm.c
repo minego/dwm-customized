@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
@@ -1047,114 +1048,151 @@ dirtomon(int dir) {
 	return m;
 }
 
-int
-drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
-	int ret, i, w, len, x;
-	short isCode = 0;
-	Clr * color = drw->scheme->fg;
+int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
+	int ret, w, x;
+	ClrScheme *prevscheme = drw->scheme;
+	ClrScheme scheme;
+	char *text;
+	char *value, *next, *cmd, *tmp, *end;
 
+	/* Use a temp scheme to deal with changing the color on the fly */
+	scheme.fg = drw->scheme->fg;
+	scheme.bg = drw->scheme->bg;
+	drw_setscheme(drw, &scheme);
+
+	/* Skip any leading whitespace */
 	while ((*stext && isspace(*stext))) {
 		stext++;
 	}
 
-	len = strlen(stext) + 1 ;
-	char *text = (char*) malloc(sizeof(char)*len);
-	char *p = text;
-	memcpy(text, stext, len);
+	text = strdup(stext);
 
-	// compute width of the status text
+	/* Calculate the width of the status text */
 	w = 0;
-	i = -1;
 
-	while(text[++i]) {
-		if(text[i] == '^' && !isCode) {
-			isCode = 1;
+	next = text;
+	while ((value = next)) {
+		if ((cmd = strchr(value, '^'))) {
+			*cmd = '\0';
+			cmd++;
 
-			// compute width of text
-			text[i] = '\0';
-			w += drw_font_getexts_width(drw->fonts[0], text, strlen(text));
-			text[i] = '^';
-
-			// process code
-			while(text[++i] != '^') {
-				if (text[i] == 'f') {
-					w += atoi(text + ++i);
-				}
+			if ((next = strchr(cmd, '^'))) {
+				*next = '\0';
+				next++;
 			}
+		} else {
+			next = NULL;
+		}
 
-			text = text + i + 1;
-			i=-1;
-			isCode = 0;
+		/*
+			value:		Current text chunk
+			cmd:		Current command
+			next:		Next text chunk
+		*/
+		if (value && *value) {
+			w += TEXTW(value);
+		}
+
+		/* The f command moves forward the specified number of pixels */
+		if (cmd && 'f' == *cmd) {
+			w += atoi(cmd + 1);
+		}
+
+		/* Cleanup for the next pass */
+		if (cmd) {
+			cmd[-1] = '^';
+		}
+		if (next) {
+			next[-1] = '^';
 		}
 	}
-	w += drw_font_getexts_width(drw->fonts[0], text, strlen(text));
-	text = p;
-
 	w += getsystraywidth();
-	ret = x = m->ww - w;
-	if(x < xx) {
-		ret = x = xx;
+
+	/* Calculate the starting position */
+	ret = m->ww - w;
+
+	if (ret < xx) {
+		/* There isn't room for the whole thing */
+		ret = xx;
 		w = m->ww - xx;
 	}
 
-	x_set_color(drw, drw->scheme->bg);
-	x_drw_rect(drw, x, 0, w, bh);
-	x_set_color(drw, color);
+	XSetForeground(drw->dpy, drw->gc, drw->scheme->bg->pix);
+	x_drw_rect(drw, ret, 0, w, bh);
 
-	// process status text
-	i = -1;
-	while(text[++i]) {
-		if(text[i] == '^' && !isCode) {
-			isCode = 1;
+	/* Draw the bar this time */
+	x = ret;
+	next = text;
+	while ((value = next)) {
+		if ((cmd = strchr(value, '^'))) {
+			*cmd = '\0';
+			cmd++;
 
-			// draw text
-			text[i] = '\0';
-			w = drw_font_getexts_width(drw->fonts[0], text, strlen(text));
-			x_drw_text(drw, x, 1, w, bh, text);
-
-			// increment x pos
-			x += w;
-
-			// process code
-			while(text[++i] != '^') {
-				if(text[i] == 'c') {
-					char buf[8];
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					color = drw_clr_create(drw, buf);
-					x_set_color(drw, color);
-					i += 7;
-				} else if(text[i] == 'd') {
-					x_set_color(drw, drw->scheme->fg);
-				} else if(text[i] == 'r') {
-					int rx = atoi(text + ++i);
-					while(text[++i] != ',');
-					int ry = atoi(text + ++i);
-					while(text[++i] != ',');
-					int rw = atoi(text + ++i);
-					while(text[++i] != ',');
-					int rh = atoi(text + ++i);
-
-					x_drw_rect(drw, rx + x, ry, rw, rh);
-				} else if (text[i] == 'f') {
-					x += atoi(text + ++i);
-				}
+			if ((next = strchr(cmd, '^'))) {
+				*next = '\0';
+				next++;
 			}
+		} else {
+			next = NULL;
+		}
 
-			text = text + i + 1;
-			i=-1;
-			isCode = 0;
+		/*
+			value:		Current text chunk
+			cmd:		Current command
+			next:		Next text chunk
+		*/
+		if (value && *value) {
+			w = TEXTW(value);
+			drw_text(drw, x, 0, w, bh, value, 0);
+			x += w;
+		}
+
+		if (cmd) {
+			switch (*cmd) {
+				case 'f': /* move foreward */
+					x += atoi(cmd + 1);
+					break;
+
+				case 'c': /* set color */
+					tmp = cmd + 1;
+					scheme.fg = drw_clr_create(drw, tmp);
+					break;
+
+				case 'd': /* reset color */
+					scheme.fg = prevscheme->fg;
+					break;
+
+				case 'r': /* draw a rectangle */
+					tmp = cmd + 1;
+
+					unsigned long rx, ry, rw, rh;
+
+					rx = strtoul(tmp, &end, 0);
+					tmp = (end && ',' == *end) ? ++end : "";
+					ry = strtoul(tmp, &end, 0);
+					tmp = (end && ',' == *end) ? ++end : "";
+					rw = strtoul(tmp, &end, 0);
+					tmp = (end && ',' == *end) ? ++end : "";
+					rh = strtoul(tmp, &end, 0);
+
+					XSetForeground(drw->dpy, drw->gc, drw->scheme->fg->pix);
+					x_drw_rect(drw, rx + x, ry, rw, rh);
+					break;
+			}
+		}
+
+		/* Cleanup */
+		if (cmd) {
+			cmd[-1] = '^';
+		}
+		if (next) {
+			next[-1] = '^';
 		}
 	}
+	free(text);
 
-	if(!isCode) {
-		w = drw_font_getexts_width(drw->fonts[0], text, strlen(text)) + drw->fonts[0]->h;
-		x_drw_text(drw, x, 1, w, bh, text);
-	}
-
-	x_set_color(drw, drw->scheme->bg);
-	free(p);
-
+	/* Restore the previous cheme */
+	drw_setscheme(drw, prevscheme);
 	return ret;
 }
 
