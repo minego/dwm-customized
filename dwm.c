@@ -1048,17 +1048,32 @@ dirtomon(int dir) {
 	return m;
 }
 
+void getcolor(char *str, Clr *color)
+{
+	Clr	*tmp;
+
+	if ((tmp = drw_clr_create(drw, str))) {
+		memcpy(color, tmp, sizeof(Clr));
+
+		drw_clr_free(tmp);
+	}
+}
+
 int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	int ret, w, x;
 	int pw = TEXTW("");
+	Clr fg, bg, bkfg;
 	ClrScheme *prevscheme = drw->scheme;
 	ClrScheme scheme;
 	char *text;
 	char *value, *next, *cmd, *tmp, *end;
 
 	/* Use a temp scheme to deal with changing the color on the fly */
-	scheme.fg = drw->scheme->fg;
-	scheme.bg = drw->scheme->bg;
+	memcpy(&fg, drw->scheme->fg, sizeof(fg));
+	memcpy(&bg, drw->scheme->bg, sizeof(bg));
+
+	scheme.fg = &fg;
+	scheme.bg = &bg;
 	drw_setscheme(drw, &scheme);
 
 	/* Skip any leading whitespace */
@@ -1095,8 +1110,16 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 		}
 
 		/* The f command moves forward the specified number of pixels */
-		if (cmd && 'f' == *cmd) {
-			w += atoi(cmd + 1);
+		if (cmd) {
+			switch (*cmd) {
+				case 'f':
+					w += atoi(cmd + 1);
+					break;
+
+				case 'a':
+					w += (bh + (bh / 2));
+					break;
+			}
 		}
 
 		/* Cleanup for the next pass */
@@ -1154,9 +1177,18 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 					x += atoi(cmd + 1);
 					break;
 
+				case 'a':
+					getcolor(cmd + 1, scheme.bg);
+					drw_setscheme(drw, &scheme);
+
+					XSetForeground(drw->dpy, drw->gc, drw->scheme->bg->pix);
+					x_drw_rect(drw, x + bh, 0, m->ww - (x + bh), bh);
+
+					x += (bh + (bh / 2));
+					break;
+
 				case 'c': /* set color */
-					tmp = cmd + 1;
-					scheme.fg = drw_clr_create(drw, tmp);
+					getcolor(cmd + 1, scheme.fg);
 					break;
 			}
 		}
@@ -1171,8 +1203,16 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 	}
 
 	/* Graphs pass */
+	memcpy(&fg, drw->scheme->fg, sizeof(fg));
+	memcpy(&bg, drw->scheme->bg, sizeof(bg));
+
+	scheme.fg = &fg;
+	scheme.bg = &bg;
+	drw_setscheme(drw, &scheme);
+
 	x = ret;
 	next = text;
+
 	while ((value = next)) {
 		if ((cmd = strchr(value, '^'))) {
 			*cmd = '\0';
@@ -1201,13 +1241,22 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 					x += atoi(cmd + 1);
 					break;
 
-				case 'c': /* set color */
-					tmp = cmd + 1;
-					scheme.fg = drw_clr_create(drw, tmp);
+				case 'a':
+					memcpy(&bkfg, scheme.fg, sizeof(Clr));
+					memcpy(scheme.fg, scheme.bg, sizeof(Clr));
+					getcolor(cmd + 1, scheme.bg);
+					drw_setscheme(drw, &scheme);
+
+					drw_arrow(drw, x + (bh / 2), 0, bh / 2, bh, 1);
+					x += (bh + (bh / 2));
+
+					memcpy(scheme.fg, &bkfg, sizeof(Clr));
+					drw_setscheme(drw, &scheme);
 					break;
 
-				case 'd': /* reset color */
-					scheme.fg = prevscheme->fg;
+				case 'c': /* set color */
+					getcolor(cmd + 1, scheme.fg);
+					drw_setscheme(drw, &scheme);
 					break;
 
 				case 'r': /* draw a rectangle */
@@ -1241,7 +1290,8 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 
 	/* Restore the previous cheme */
 	drw_setscheme(drw, prevscheme);
-	return ret;
+
+	return(ret - 5);
 }
 
 /*
