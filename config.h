@@ -16,10 +16,10 @@ static const char *fonts[] = {
     "WenQuanYi Micro Hei:size=10.5",
 };
 #define dmenufont					"-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*"
-#define normbordercolor				"#444444"
+#define normbordercolor				"#222222"
 #define normbgcolor					"#222222"
 #define normfgcolor					"#bbbbbb"
-#define selbordercolor				"#d23d3d"
+#define selbordercolor				"#dddddd"
 #define selbgcolor					"#e1aa5d"
 #define selfgcolor					"#000000"
 
