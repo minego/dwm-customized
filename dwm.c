@@ -81,7 +81,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeUrg, SchemeLast }; /* color schemes */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
 	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
 	   NetWMWindowTypeDialog, NetClientList, NetWMWindowOpacity, NetLast }; /* EWMH atoms */
@@ -770,12 +770,18 @@ cleanup(void) {
 	drw_cur_free(drw, cursor[CurNormal]);
 	drw_cur_free(drw, cursor[CurResize]);
 	drw_cur_free(drw, cursor[CurMove]);
+
 	drw_clr_free(scheme[SchemeNorm].border);
 	drw_clr_free(scheme[SchemeNorm].bg);
 	drw_clr_free(scheme[SchemeNorm].fg);
+
 	drw_clr_free(scheme[SchemeSel].border);
 	drw_clr_free(scheme[SchemeSel].bg);
 	drw_clr_free(scheme[SchemeSel].fg);
+
+	drw_clr_free(scheme[SchemeUrg].border);
+	drw_clr_free(scheme[SchemeUrg].bg);
+	drw_clr_free(scheme[SchemeUrg].fg);
 	drw_free(drw);
 	XSync(dpy, False);
 	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
@@ -1334,14 +1340,18 @@ drawbar(Monitor *m) {
 
 	x = 0;
 	for(i = 0; i < LENGTH(tags); i++) {
-		x += drawarrow(drw, &arrowscheme,
-				m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm],
-				x, bh, 0, urg & 1 << i);
+		if (urg & 1 << i) {
+			x+= drawarrow(drw, &arrowscheme, &scheme[SchemeUrg], x, bh, 0, 0);
+		} else if (m->tagset[m->seltags] & 1 << i) {
+			x+= drawarrow(drw, &arrowscheme, &scheme[SchemeSel], x, bh, 0, 0);
+		} else {
+			x+= drawarrow(drw, &arrowscheme, &scheme[SchemeNorm], x, bh, 0, 0);
+		}
 
 		w = TEXTW(tags[i]);
-		drw_text(drw, x, 0, w, bh, tags[i], urg & 1 << i);
+		drw_text(drw, x, 0, w, bh, tags[i], 0);
 		drw_rect(drw, x, 0, w, bh, m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
-		           occ & 1 << i, urg & 1 << i);
+		           occ & 1 << i, 0);
 		x += w;
 	}
 
@@ -2626,9 +2636,15 @@ setup(void) {
 	scheme[SchemeNorm].border = drw_clr_create(drw, normbordercolor);
 	scheme[SchemeNorm].bg = drw_clr_create(drw, normbgcolor);
 	scheme[SchemeNorm].fg = drw_clr_create(drw, normfgcolor);
+
 	scheme[SchemeSel].border = drw_clr_create(drw, selbordercolor);
 	scheme[SchemeSel].bg = drw_clr_create(drw, selbgcolor);
 	scheme[SchemeSel].fg = drw_clr_create(drw, selfgcolor);
+
+	scheme[SchemeUrg].border = drw_clr_create(drw, selbordercolor);
+	scheme[SchemeUrg].bg = drw_clr_create(drw, urgbgcolor);
+	scheme[SchemeUrg].fg = drw_clr_create(drw, urgfgcolor);
+
 	/* init system tray */
 	updatesystray();
 	/* init bars */

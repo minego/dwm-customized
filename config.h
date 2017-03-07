@@ -23,6 +23,9 @@ static const char *fonts[] = {
 #define selbgcolor					"#e1aa5d"
 #define selfgcolor					"#000000"
 
+#define urgbgcolor					"#b8d68c"
+#define urgfgcolor					"#000000"
+
 static const unsigned int borderpx	= 1;        /* border pixel of windows */
 static const unsigned int gappx		= 24;		/* gap between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
