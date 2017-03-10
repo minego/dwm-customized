@@ -20,10 +20,10 @@ static const char *fonts[] = {
 #define normbgcolor					"#222222"
 #define normfgcolor					"#bbbbbb"
 #define selbordercolor				"#dddddd"
-#define selbgcolor					"#e1aa5d"
+#define selbgcolor					"#b8d68c"
 #define selfgcolor					"#000000"
 
-#define urgbgcolor					"#b8d68c"
+#define urgbgcolor					"#e1aa5d"
 #define urgfgcolor					"#000000"
 
 static const unsigned int borderpx	= 1;        /* border pixel of windows */

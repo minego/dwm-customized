@@ -1362,7 +1362,7 @@ drawbar(Monitor *m) {
 	x += w;
 
 	x+= drawarrow(drw, &arrowscheme,
-			(m == selmon) ? &scheme[SchemeSel] : &scheme[SchemeNorm], x, bh, 0, 0);
+			(m == selmon) ? &scheme[SchemeUrg] : &scheme[SchemeNorm], x, bh, 0, 0);
 
 	drw_setscheme(drw, &scheme[SchemeNorm]);
 	xx = x;
@@ -1374,7 +1374,7 @@ drawbar(Monitor *m) {
 	if((w = x - xx) > bh) {
 		x = xx;
 
-		drw_setscheme(drw, m == selmon ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
+		drw_setscheme(drw, m == selmon ? &scheme[SchemeUrg] : &scheme[SchemeNorm]);
 		if(m->sel) {
 			drw_text(drw, x, 0, w, bh, m->sel->name, 0);
 			drw_rect(drw, x, 0, w, bh, m->sel->isfixed, m->sel->isfloating, 0);
