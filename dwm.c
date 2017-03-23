@@ -284,7 +284,9 @@ static Monitor *systraytomon(Monitor *m);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static Client *termforwin(const Client *c);
+#if 0
 static void tile(Monitor *);
+#endif
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
@@ -591,12 +593,34 @@ arrange(Monitor *m) {
 
 void
 arrangemon(Monitor *m) {
+	Client *c;
+
 	updatebarpos(m);
 	XMoveResizeWindow(dpy, m->tabwin, m->wx, m->ty, m->ww, th);
 
 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
 	if(m->lt[m->sellt]->arrange)
 		m->lt[m->sellt]->arrange(m);
+
+	/*
+		If there is a fullscreen window visible then select it. Allowing any
+		other window to be selected would be rude.
+	*/
+	for (c = m->clients; c; c = c->next) {
+		if (!ISVISIBLE(c) || !c->isfullscreen) {
+			continue;
+		}
+
+		if (m->sel && m->sel->isfullscreen && c != m->sel) {
+			/*
+				There is already a fullscreen window selected. We can't have 2
+				selected. That would make things complicated.
+			*/
+			setfullscreen(c, False);
+		} else {
+			focus(c);
+		}
+	}
 }
 
 void
@@ -2734,6 +2758,7 @@ tagmon(const Arg *arg) {
 	sendmon(selmon->sel, dirtomon(arg->i));
 }
 
+#if 0
 void
 tile(Monitor *m) {
 	unsigned int i, n, h, mw, my, ty, r;
@@ -2786,6 +2811,7 @@ tile(Monitor *m) {
 		}
 	}
 }
+#endif
 
 void
 togglebar(const Arg *arg) {
