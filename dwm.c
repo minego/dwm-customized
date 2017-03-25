@@ -683,6 +683,7 @@ swallow(Client *p, Client *c)
 
 	updatetitle(p);
 	arrange(p->mon);
+	applyrules(p);
 	configure(p);
 	updateclientlist();
 }
@@ -699,6 +700,7 @@ unswallow(Client *c)
 	arrange(c->mon);
 	XMapWindow(dpy, c->win);
 	XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+	applyrules(c);
 	configure(c);
 	setclientstate(c, NormalState);
 }
