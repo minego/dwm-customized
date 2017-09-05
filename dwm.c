@@ -697,6 +697,7 @@ unswallow(Client *c)
 	free(c->swallowing);
 	c->swallowing = NULL;
 
+	setfullscreen(c, False);
 	updatetitle(c);
 	arrange(c->mon);
 	XMapWindow(dpy, c->win);
