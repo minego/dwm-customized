@@ -2581,6 +2581,13 @@ setfullscreen(Client *c, Bool fullscreen) {
 		c->y = c->oldy;
 		c->w = c->oldw;
 		c->h = c->oldh;
+
+		if (c->w <= 0) {
+			c->w = 1;
+		}
+		if (c->h <= 0) {
+			c->h = 1;
+		}
 		resizeclient(c, c->x, c->y, c->w, c->h);
 		arrange(c->mon);
 	}
@@ -3552,6 +3559,8 @@ wintosystrayicon(Window w) {
  * default error handler, which may call exit.  */
 int
 xerror(Display *dpy, XErrorEvent *ee) {
+	char		errstr[4096];
+
 	if(ee->error_code == BadWindow
 	|| (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
 	|| (ee->request_code == X_PolyText8 && ee->error_code == BadDrawable)
@@ -3562,9 +3571,17 @@ xerror(Display *dpy, XErrorEvent *ee) {
 	|| (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
 	|| (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
 		return 0;
-	fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
+
+	*errstr='\0';
+	XGetErrorText(dpy, ee->error_code, errstr, sizeof(errstr));
+
+	fprintf(stderr, "dwm: error: request code=%d, error code=%d\n",
 			ee->request_code, ee->error_code);
-	return xerrorxlib(dpy, ee); /* may call exit */
+	if (*errstr) {
+		fprintf(stderr, "dwm: error: %s\n", errstr);
+	}
+	// return xerrorxlib(dpy, ee); /* may call exit */
+	return 0;
 }
 
 int
