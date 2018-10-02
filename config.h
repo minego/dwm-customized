@@ -60,6 +60,7 @@ static const Rule rules[] = {
 	{ "Pidgin",				NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.50,	0.8,	False,		False },
 	{ "chromium",			NULL,		"Macaw",		1 << 4,		False,		False,			-1,		True,  0.75,	0.8,	False,		False },
 	{ "st-256color",		NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False,		False },
+	{ "Alacritty",			NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False,		False },
 
 	{ "Firefox",			NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
 	{ "Chromium",			NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
