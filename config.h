@@ -136,7 +136,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    comboview,      {-1} },
 	{ MODKEY|ShiftMask,             XK_Tab,    pushleft,       {0} },
-	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
+	// { MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,						XK_w,      killclient,     {0} },
 	{ MODKEY,						XK_z,      toggleswallow,  {0} },
 	{ MODKEY,						XK_f,      togglefullscreen,{0} },
