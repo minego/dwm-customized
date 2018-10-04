@@ -45,7 +45,7 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 
 
 /* tagging */
-static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "macaw", "chat", "mail", "8", "9" };
+static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "5", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
 	/* class				instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	IsKeyboard */
