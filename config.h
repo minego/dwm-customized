@@ -90,7 +90,8 @@ static const Layout layouts[] = {		/* First entry is default */
 #include "nextlayout.c"
 
 /* key definitions */
-#define MODKEY Mod1Mask
+// #define MODKEY Mod1Mask
+#define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      comboview,      { .i = TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     { .ui = 1 << TAG} }, \
