@@ -80,7 +80,60 @@ void mtcl(Monitor *m)
 	int				masterw, leftw, rightw;
 	unsigned int	i, leftn, rightn, mastern;
 	float			colfacts;
-	Client			*c, *nc, *pc, *lc, **lp;
+#if 0 // MNG, fixing order for master on the right
+	Client			*master_c		= nexttiled(m->clients);
+	Client			*c, *next, **end_c;
+	Client			*left_clients	= NULL;
+	Client			**left_end		= &left_clients;
+	Client			*right_clients	= NULL;
+	Client			**right_end		= &right_clients;
+
+int ready = 0;
+while (0 == ready) {
+	;
+}
+
+	/*
+		Enumerate all tiled windows except the master and place them into either
+		the right or left list.
+	*/
+	next = master_c ? master_c->next : NULL;
+	while ((c = nexttiled(next))) {
+		next = c->next;
+
+		detach(c);
+		c->next = NULL;
+
+		if (c->isLeft) {
+			*left_end = c;
+			left_end = &c->next;
+		} else {
+			*right_end = c;
+			right_end = &c->next;
+		}
+	}
+
+	/*
+		Reattach the windows in the appropriate order, keeping in mind that the
+		"right" list is actually in the center and the master is actually on the
+		right of the screen.
+	*/
+	end_c = &m->clients;
+	while (end_c && *end_c) {
+		end_c = &((*end_c)->next);
+	}
+
+	*end_c		= left_clients;
+	*left_end	= right_clients;
+
+#else
+
+	Client			*c, *nc, *pc;
+	Client			*lc, **lp;
+
+// TODO MNG Automatically move windows in and out of the left column so that
+//		the most recently used windows are kept on the master and right column
+//		and all others are on the left.
 
 	/*
 		Reorder windows so that all windows in the left column are after those
@@ -111,6 +164,7 @@ void mtcl(Monitor *m)
 		*lp = pc->next;
 		pc->next = lc;
 	}
+#endif
 
 	/* Count the windows and the client factor */
 	leftn = rightn = mastern = 0;
@@ -149,6 +203,7 @@ void mtcl(Monitor *m)
 		rightw	= 0;
 	}
 
+#if 0
 	/* Master */
 	c = mtclColumn(m, c, mastern, m->wx + leftw, masterw);
 
@@ -157,6 +212,20 @@ void mtcl(Monitor *m)
 
 	/* left column */
 	c = mtclColumn(m, c, leftn, m->wx, leftw);
+#else
+	// MNG Swap the right and master columns
+
+	/* Master */
+	c = mtclColumn(m, c, mastern, m->wx + leftw + rightw, masterw);
+
+	/* Right column */
+	c = mtclColumn(m, c, rightn, m->wx + leftw, rightw);
+
+	/* left column */
+	c = mtclColumn(m, c, leftn, m->wx, leftw);
+
+
+#endif
 }
 
 /* A value >= 1.0 sets that colfact to that value - 1.0 */
