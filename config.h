@@ -7,6 +7,7 @@
 
 /* appearance */
 static const char *fonts[] = {
+	"xos4 Terminess:size=12:antialias=false:autohint=false",
 	"xos4 Terminess Powerline:size=9:antialias=false:autohint=false",
 	"Ubuntu Mono derivative Powerline:size=9",
 	// "terminus:size=16",
