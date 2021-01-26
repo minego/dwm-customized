@@ -725,9 +725,12 @@ buttonpress(XEvent *e) {
 	}
 	if(ev->window == selmon->barwin) {
 		i = x = 0;
-		do
+		do {
 			x += TEXTW(tags[i]);
-		while(ev->x >= x && ++i < LENGTH(tags));
+
+			/* Include the arrow */
+			x += bh / 2;
+		} while(ev->x >= x && ++i < LENGTH(tags));
 		if(i < LENGTH(tags)) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
@@ -1094,7 +1097,8 @@ void getcolor(char *str, Clr *color)
 	}
 }
 
-int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
+int drawstatusbar(Monitor *m, int bh, char* stext, int xx)
+{
 	int ret, w, x;
 	int pw = TEXTW("");
 	Clr fg, bg, bkfg;
@@ -1165,7 +1169,12 @@ int drawstatusbar(Monitor *m, int bh, char* stext, int xx) {
 			next[-1] = '^';
 		}
 	}
-	w += getsystraywidth();
+
+	if (m == selmon) {
+		w += getsystraywidth();
+	} else {
+		w += systrayspacing;
+	}
 
 	/* Calculate the starting position */
 	ret = m->ww - w;
@@ -1395,10 +1404,7 @@ drawbar(Monitor *m) {
 
 	drw_setscheme(drw, &scheme[SchemeNorm]);
 	xx = x;
-	if(m == selmon) /* status is only drawn on selected monitor */
-		x = drawstatusbar(m, bh, stext, xx);
-	else
-		x = m->ww;
+	x = drawstatusbar(m, bh, stext, xx);
 
 	if((w = x - xx) > bh) {
 		x = xx;
@@ -3245,10 +3251,16 @@ updatetitle(Client *c) {
 }
 
 void
-updatestatus(void) {
+updatestatus(void)
+{
+	Monitor *m;
+
 	if(!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
 		strcpy(stext, "dwm-"VERSION);
-	drawbar(selmon);
+
+	for(m = mons; m; m = m->next) {
+		drawbar(m);
+	}
 }
 
 void
