@@ -80,7 +80,7 @@ void mtcl(Monitor *m)
 	int				masterw, leftw, rightw;
 	unsigned int	i, leftn, rightn, mastern;
 	float			colfacts;
-#if 0 // MNG, fixing order for master on the right
+#if 1 // MNG, fixing order for master on the right
 	Client			*master_c		= nexttiled(m->clients);
 	Client			*c, *next, **end_c;
 	Client			*left_clients	= NULL;
@@ -88,7 +88,7 @@ void mtcl(Monitor *m)
 	Client			*right_clients	= NULL;
 	Client			**right_end		= &right_clients;
 
-int ready = 0;
+int ready = 1;
 while (0 == ready) {
 	;
 }
@@ -97,9 +97,9 @@ while (0 == ready) {
 		Enumerate all tiled windows except the master and place them into either
 		the right or left list.
 	*/
-	next = master_c ? master_c->next : NULL;
-	while ((c = nexttiled(next))) {
-		next = c->next;
+	next = nexttiled(master_c ? master_c->next : NULL);
+	while ((c = next)) {
+		next = nexttiled(c->next);
 
 		detach(c);
 		c->next = NULL;
@@ -123,8 +123,8 @@ while (0 == ready) {
 		end_c = &((*end_c)->next);
 	}
 
-	*end_c		= left_clients;
-	*left_end	= right_clients;
+	*right_end	= left_clients;
+	*end_c		= right_clients;
 
 #else
 
@@ -203,7 +203,7 @@ while (0 == ready) {
 		rightw	= 0;
 	}
 
-#if 0
+#if 1
 	/* Master */
 	c = mtclColumn(m, c, mastern, m->wx + leftw, masterw);
 
