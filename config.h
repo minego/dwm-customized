@@ -69,7 +69,9 @@ static const Rule rules[] = {
 
 	{ "Slack",				NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.00,	-1,		False,		False },
 	{ "TelegramDesktop",	NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.00,	-1,		False,		False },
-	{ NULL,					NULL,		"Messages for web", 1 << 5,	False,		False,			-1,		True,  0.00,	-1,		False,		False },
+	{ "googlemessages",		NULL,		NULL,			1 << 5,	False,		False,			-1,		True,  0.00,	-1,		False,		False },
+
+	{ "Spotify",			NULL,		NULL,			1 << 7,		False,		False,			-1,		True,  0.00,	-1,		False,		False },
 };
 
 /* layout(s) */
