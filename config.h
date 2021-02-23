@@ -46,7 +46,7 @@ static const Bool toptab            = False;    /* False means bottom tab bar */
 
 
 /* tagging */
-static char tags[][MAX_TAGLEN] = { "www", "code", "3", "4", "5", "chat", "mail", "8", "9" };
+static char tags[][MAX_TAGLEN] = { "www", "code", "win", "mac", "5", "chat", "mail", "8", "9" };
 
 static const Rule rules[] = {
 	/* class				instance	title			tags mask	isfloating	isterminal,		monitor	isLeft cfact	opacity	NoSwallow	IsKeyboard */
@@ -69,14 +69,16 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
-static const float mfact      = 0.60; /* factor of master area size [0.05..0.95] */
-static const int nmaster      = 1;    /* number of clients in master area */
-static const Bool resizehints = False; /* True means respect size hints in tiled resizals */
+static const float mfact		= 0.60; /* factor of master area size [0.05..0.95] */
+static const int nmaster		= 1;    /* number of clients in master area */
+static const int nmastercols	= 1;	/* number of master columns for n column layout */
+static const int nrightcols		= 1;	/* number of right columns for n column layout */
+static const Bool resizehints	= False; /* True means respect size hints in tiled resizals */
 
 #include "horizgrid.c"
 static const Layout layouts[] = {		/* First entry is default */
 	/* symbol		arrange function */
-    { "=O=",		mtcl			},
+    { "=O==",		ncl				},
 	{ "[M]",		monocle			},
 	{ "###",		horizgrid		},
 
@@ -126,6 +128,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_i,      incncols,       {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_d,      incncols,       {.i = -1 } },
 	{ MODKEY,                       XK_h,      setcolfact,     {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setcolfact,     {.f = +0.05} },
 	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
@@ -140,8 +144,6 @@ static Key keys[] = {
 	{ MODKEY,						XK_w,      killclient,     {0} },
 	{ MODKEY,						XK_z,      toggleswallow,  {0} },
 	{ MODKEY,						XK_f,      togglefullscreen,{0} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[1]} },
-    { MODKEY,                       XK_g,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_space,  nextlayout,     {0} },
 	{ MODKEY,						XK_t,      forcetile,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  setlayout,      {.v = &layouts[0]} },

@@ -1,16 +1,91 @@
-/*
-	Modified version of http://dwm.suckless.org/patches/three-column originally
-	created by Chris Truett. This version places more windows in the left
-	column than the right.
+#include <math.h>
 
-	The intent is that windows which are less important can be moved to the left
-	and will be given less screen space.
+/*
+	Heavily modified version of the 3 column layout patch, originally created by
+	Chris Truett:
+		http://dwm.suckless.org/patches/three-column
+
+	- Treat the left column as special and allow clients to be pushed into it
+	- Allow a variable number of master columns
+	- Allow a variable number of right columns
+	- Supports nmaster
 */
 
 /* The relative factors for the size of each column */
 static const float colfact[3]			= { 0.1, 0.6, 0.3 };
 
-static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
+/* Return non-zero if the currently selected client is in a master column */
+int ismaster(void)
+{
+	Client	*c;
+	int		i;
+
+	if (!selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
+		return 0;
+	}
+
+	for (i = 0, c = nexttiled(selmon->clients); c; c = nexttiled(c->next), i++) {
+		if (selmon->sel == c) {
+			/* c is the selected client, and is index i */
+			if (i < selmon->nmaster) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/* A value >= 1.0 sets that colfact to that value - 1.0 */
+void setcolfact(const Arg *arg)
+{
+	int		index = 1;
+
+	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
+		return;
+	}
+
+	if (ismaster()) {
+		index = 0;
+		/* master */
+		index = 0;
+	} else if (selmon->sel->isLeft) {
+		/* left */
+		index = -1;
+	} else {
+		/* right */
+		index = 1;
+	}
+	index++;
+
+	if (arg->f >= 1.0) {
+		selmon->colfact[index] = arg->f - 1.0;
+	} else {
+		/* Adjust the argument based on the selected column */
+		selmon->colfact[index] += arg->f;
+	}
+
+	if (selmon->colfact[index] < 0.1) {
+		selmon->colfact[index] = 0.1;
+	} else if (selmon->colfact[index] > 0.9) {
+		selmon->colfact[index] = 0.9;
+	}
+	arrange(selmon);
+}
+
+static void pushleft(const Arg *arg)
+{
+	if (selmon && selmon->sel) {
+		selmon->sel->isLeft = !selmon->sel->isLeft;
+
+		focus(selmon->sel);
+	}
+	arrange(selmon);
+}
+
+static Client * placeColumn(Monitor *m, Client *first, int count, int *x, int w)
 {
 	Client	*c;
 	int		i, y;
@@ -64,7 +139,7 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 			cw = c->minw;
 		}
 
-		resize(c, x, y, cw, ch, False);
+		resize(c, *x, y, cw, ch, False);
 
 		ch = HEIGHT(c);
 		if (ch < m->wh) {
@@ -72,207 +147,172 @@ static Client * mtclColumn(Monitor *m, Client *first, int count, int x, int w)
 		}
 	}
 
+	(*x) += w;
+
 	return(c);
 }
 
-void mtcl(Monitor *m)
-{
-	int				masterw, leftw, rightw;
-	unsigned int	i, leftn, rightn, mastern;
-	float			colfacts;
-#if 1 // MNG, fixing order for master on the right
-	Client			*master_c		= nexttiled(m->clients);
-	Client			*c, *next, **end_c;
-	Client			*left_clients	= NULL;
-	Client			**left_end		= &left_clients;
-	Client			*right_clients	= NULL;
-	Client			**right_end		= &right_clients;
+/*
+	n column layout
 
-int ready = 1;
-while (0 == ready) {
-	;
-}
+	This layout has a variable number of columns, in 3 categories.
+		0-1 small left columns, containing clients that have been "pushed" left
+		1-n master columns
+		0-n right columns
+*/
+void ncl(Monitor *m)
+{
+	int				masterw, leftw, rightw, x;
+	unsigned int	i, leftn, rightn, mastern, coln;
+	float			colfacts;
+	Client			*c, **end, *next;
+	Client			*left_clients	= NULL;
+	int				nmastercols		= m->nmastercols;
+	int				nrightcols		= m->nrightcols;
 
 	/*
-		Enumerate all tiled windows except the master and place them into either
-		the right or left list.
+		Pull off all of the windows which have been pushed to the left, and
+		reattach them at the end of the list.
 	*/
-	next = nexttiled(master_c ? master_c->next : NULL);
-	while ((c = next)) {
+	end = &left_clients;
+	next = nexttiled(m->clients);
+
+	for (i = 0; (c = next); i++) {
+		/* Calculate the next one here in case we detach */
 		next = nexttiled(c->next);
 
-		detach(c);
-		c->next = NULL;
-
-		if (c->isLeft) {
-			*left_end = c;
-			left_end = &c->next;
-		} else {
-			*right_end = c;
-			right_end = &c->next;
-		}
-	}
-
-	/*
-		Reattach the windows in the appropriate order, keeping in mind that the
-		"right" list is actually in the center and the master is actually on the
-		right of the screen.
-	*/
-	end_c = &m->clients;
-	while (end_c && *end_c) {
-		end_c = &((*end_c)->next);
-	}
-
-	*right_end	= left_clients;
-	*end_c		= right_clients;
-
-#else
-
-	Client			*c, *nc, *pc;
-	Client			*lc, **lp;
-
-// TODO MNG Automatically move windows in and out of the left column so that
-//		the most recently used windows are kept on the master and right column
-//		and all others are on the left.
-
-	/*
-		Reorder windows so that all windows in the left column are after those
-		in the right column in the list.
-	*/
-	pc = nexttiled(m->clients);
-	nc = nexttiled(pc ? pc->next : NULL); /* Skip the master window */
-	lc = NULL;
-	lp = &lc;
-
-	while ((c = nc)) {
-		nc = nexttiled(c->next);
-
-		if (c->isLeft) {
+		if (i < m->nmaster) {
+			/* Master */
+			;
+		} else if (c->isLeft) {
+			/* Left; Detach and put in the left list */
 			detach(c);
-			c->next = NULL;
 
-			*lp = c;
-			lp = &c->next;
-		} else {
-			/* Keep track of the last client */
-			pc = c;
+			*end = c;
+			end = &c->next;
 		}
 	}
 
-	if (lc && pc) {
-		/* Reattach the list of left clients to the end */
-		*lp = pc->next;
-		pc->next = lc;
+	/*
+		Find the end of the client list so that the left windows can be
+		reattached at the end.
+	*/
+	end = &m->clients;
+	while (end && *end) {
+		end = &((*end)->next);
 	}
-#endif
+	*end = left_clients;
 
-	/* Count the windows and the client factor */
+
+	/* Count the windows for each column type */
 	leftn = rightn = mastern = 0;
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-		if (mastern > 0) {
-			if (c->isLeft) {
-				leftn++;
-			} else {
-				rightn++;
-			}
-		} else {
+		if (mastern < m->nmaster) {
 			mastern++;
+		} else if (c->isLeft) {
+			leftn++;
+		} else {
+			rightn++;
 		}
 	}
+
+	nmastercols	= MAX(MIN(mastern, nmastercols), 1);
+	nrightcols	= MAX(MIN(rightn, nrightcols), 1);
 
 	if (mastern == 0) {
 		return;
 	}
 
-	for (colfacts = 0, i = 0; i < 3; i++) {
-		colfacts += m->colfact[i];
+
+	/* Calculate the total colfacts value */
+	colfacts = 0;
+
+	/* Left column */
+	if (leftn > 0) {
+		colfacts += m->colfact[0];
 	}
 
-	c		= nexttiled(m->clients);
+	/* Center column(s) */
+	for (i = 0; i < nmastercols; i++) {
+		colfacts += m->colfact[1];
+	}
+
+	/* Right column(s) */
+	if (rightn > 0) {
+		for (i = 0; i < nrightcols; i++) {
+			colfacts += m->colfact[2];
+		}
+	}
+
+	/* Calculate the width for each column type */
+	leftw	= (m->ww / colfacts) * m->colfact[0];
 	masterw	= (m->ww / colfacts) * m->colfact[1];
-
 	rightw	= (m->ww / colfacts) * m->colfact[2];
-	leftw	= (m->ww - masterw) - rightw;
 
-	if (!leftn) {
-		masterw	+= leftw;
-		leftw	= 0;
+
+	/* Master columns; start to the right of the "left" column */
+	c = nexttiled(m->clients);
+	coln = floor(mastern / nmastercols);
+	x = m->wx;
+	if (leftn > 0) {
+		x += leftw;
 	}
-	if (!rightn) {
-		masterw	+= rightw;
-		rightw	= 0;
+
+	for (i = 0; i < nmastercols; i++) {
+		if (i < nmastercols - 1) {
+			c = placeColumn(m, c, coln, &x, masterw);
+			mastern -= coln;
+		} else {
+			/* Remainder goes into the last master column */
+			c = placeColumn(m, c, mastern, &x, masterw);
+		}
 	}
 
-#if 1
-	/* Master */
-	c = mtclColumn(m, c, mastern, m->wx + leftw, masterw);
+	/* Right columns; start directly to the right of the last master column */
+	if (rightn > 0) {
+		coln = floor(rightn / nrightcols);
 
-	/* Right column */
-	c = mtclColumn(m, c, rightn, m->wx + masterw + leftw, rightw);
+		for (i = 0; i < nrightcols; i++) {
+			if (i < nrightcols - 1) {
+				c = placeColumn(m, c, coln, &x, rightw);
+				rightn -= coln;
+			} else {
+				/* Remainder goes into the last right column */
+				c = placeColumn(m, c, rightn, &x, rightw);
+			}
+		}
+	}
 
 	/* left column */
-	c = mtclColumn(m, c, leftn, m->wx, leftw);
-#else
-	// MNG Swap the right and master columns
-
-	/* Master */
-	c = mtclColumn(m, c, mastern, m->wx + leftw + rightw, masterw);
-
-	/* Right column */
-	c = mtclColumn(m, c, rightn, m->wx + leftw, rightw);
-
-	/* left column */
-	c = mtclColumn(m, c, leftn, m->wx, leftw);
-
-
-#endif
+	if (leftn > 0) {
+		x = m->wx;
+		c = placeColumn(m, c, leftn, &x, leftw);
+	}
 }
 
-/* A value >= 1.0 sets that colfact to that value - 1.0 */
-void setcolfact(const Arg *arg)
+/*
+	Modify either the right or master column count
+*/
+void incncols(const Arg *arg)
 {
-	Client	*master;
-	int		index = 1;
-
 	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange || !selmon->sel) {
 		return;
 	}
 
-	master = nexttiled(selmon->clients);
-	if (selmon->sel == master) {
+	if (ismaster()) {
 		/* master */
-		index = 0;
+		selmon->nmastercols = MAX(selmon->nmastercols + arg->i, 0);
+
+		/* Auto adjust nmaster as well */
+		selmon->nmaster = MAX(selmon->nmaster, selmon->nmastercols);
 	} else if (selmon->sel->isLeft) {
 		/* left */
-		index = -1;
+		;
 	} else {
 		/* right */
-		index = 1;
-	}
-	index++;
-
-	if (arg->f >= 1.0) {
-		selmon->colfact[index] = arg->f - 1.0;
-	} else {
-		/* Adjust the argument based on the selected column */
-		selmon->colfact[index] += arg->f;
+		selmon->nrightcols = MAX(selmon->nrightcols + arg->i, 0);
 	}
 
-	if (selmon->colfact[index] < 0.1) {
-		selmon->colfact[index] = 0.1;
-	} else if (selmon->colfact[index] > 0.9) {
-		selmon->colfact[index] = 0.9;
-	}
-	arrange(selmon);
-}
-
-static void pushleft(const Arg *arg)
-{
-	if (selmon && selmon->sel) {
-		selmon->sel->isLeft = !selmon->sel->isLeft;
-
-		focus(selmon->sel);
-	}
 	arrange(selmon);
 }
 

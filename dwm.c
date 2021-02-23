@@ -147,6 +147,8 @@ struct Monitor {
 	float mfact;
 	float colfact[3];
 	int nmaster;
+	int nmastercols;
+	int nrightcols;
 	int num;
 	int by;               /* bar geometry */
 	int ty;               /* tab bar geometry */
@@ -204,7 +206,7 @@ static Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool inter
 static void arrange(Monitor *m);
 static void arrangemon(Monitor *m);
 static void attach(Client *c);
-static void attachaside(Client *c);
+static void attachafter(Client *c);
 static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
@@ -640,12 +642,15 @@ attach(Client *c) {
 }
 
 void
-attachaside(Client *c) {
-	Client *at = nexttiled(c->mon->clients);
-	if(c->mon->sel == NULL || c->mon->sel->isfloating || !at) {
+attachafter(Client *c)
+{
+	Client *at = c->mon->sel;
+
+	if (at == NULL || at->isfloating) {
 		attach(c);
 		return;
 	}
+
 	c->next = at->next;
 	at->next = c;
 }
@@ -1016,6 +1021,8 @@ createmon(void) {
 	m->createtag[0] = 0;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
+	m->nmastercols = nmastercols;
+	m->nrightcols = nrightcols;
 	m->showbar = showbar;
 	m->showtab = showtab;
 	m->topbar = topbar;
@@ -1973,9 +1980,12 @@ manage(Window w, XWindowAttributes *wa) {
 	if(c->isfloating)
 		XRaiseWindow(dpy, c->win);
 
-	/* MNG: Either attach (center) or attachaside (put in right stack) */
-	// attachaside(c);
+	/* MNG: Either attach (center) or attachafter (put in right stack) */
+#if 0
 	attach(c);
+#else
+	attachafter(c);
+#endif
 	attachstack(c);
 
 	XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
@@ -2510,7 +2520,12 @@ sendmon(Client *c, Monitor *m) {
 	detachstack(c);
 	c->mon = m;
 	c->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
-	attachaside(c);
+#if 0
+	attach(c);
+#else
+	attachafter(c);
+#endif
+
 	attachstack(c);
 	focus(NULL);
 	arrange(NULL);
@@ -3129,7 +3144,12 @@ updategeom(void) {
 					m->clients = c->next;
 					detachstack(c);
 					c->mon = mons;
-					attachaside(c);
+
+#if 0
+					attach(c);
+#else
+					attachafter(c);
+#endif
 					attachstack(c);
 				}
 				if(m == selmon)
