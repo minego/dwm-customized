@@ -63,9 +63,13 @@ static const Rule rules[] = {
 	{ "kitty",				NULL,		NULL,			0,			False,		True,			-1,		False, 0.00,	0.8,	False,		False },
 
 	{ "Firefox",			NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "Chromium",			NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "Google-chrome",		NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False },
-	{ "mpv",				NULL,		NULL,			0,			False,		False,			-1,		False, 0.00,	-1,		False,		False }
+	{ "Chromium",			NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ "Google-chrome",		NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
+	{ "mpv",				NULL,		NULL,			1 << 0,		False,		False,			-1,		False, 0.00,	-1,		False,		False },
+
+	{ "Slack",				NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.00,	-1,		False,		False },
+	{ "TelegramDesktop",	NULL,		NULL,			1 << 5,		False,		False,			-1,		True,  0.00,	-1,		False,		False },
+	{ NULL,					NULL,		"Messages for web", 1 << 5,	False,		False,			-1,		True,  0.00,	-1,		False,		False },
 };
 
 /* layout(s) */
