@@ -1195,6 +1195,35 @@ drawstatusbar(Monitor *m, int bh, char* stext) {
 	return ret;
 }
 
+/*
+	Draw an arrow to transition between one color scheme and another.
+
+	This will also set the scheme.
+*/
+static int drawarrow(Drw *drw, Clr **prevbg, Clr *bg, int x, int bh, int backwards, int invert)
+{
+	Clr		bkbg	= drw->scheme[ColBg];
+	Clr		bkfg	= drw->scheme[ColFg];
+
+	/* Set the fg color to be the previous bg color */
+	drw->scheme[ColFg] = **prevbg;
+
+	/* Set the new bg color */
+	drw->scheme[ColBg] = *bg;
+
+	/* Draw the actual arrow */
+	drw_arrow(drw, x, 0, bh / 2, bh, backwards);
+
+	/* Restore the colors */
+	drw->scheme[ColBg] = bkbg;
+	drw->scheme[ColFg] = bkfg;
+
+	/* Save the new bg for the next arrow */
+	*prevbg = bg;
+
+	return(bh / 2);
+}
+
 void
 drawbar(Monitor *m)
 {
@@ -1203,6 +1232,7 @@ drawbar(Monitor *m)
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
+	Clr *lastbg;
 
 	if(showsystray && m == systraytomon(m))
 		stw = getsystraywidth();
@@ -1219,7 +1249,21 @@ drawbar(Monitor *m)
 			urg |= c->tags;
 	}
 	x = 0;
-	for (i = 0; i < LENGTH(tags); i++) {
+
+	lastbg = &scheme[SchemeNorm][ColBg];
+	for(i = 0; i < LENGTH(tags); i++) {
+		// TODO Add a color for urgent?
+#if 0
+		if (urg & 1 << i) {
+			x+= drawarrow(drw, &lastbg, scheme[SchemeUrg][ColBg], x, bh, 0, 0);
+		} else
+#endif
+		if (m->tagset[m->seltags] & 1 << i) {
+			x+= drawarrow(drw, &lastbg, &scheme[SchemeSel][ColBg], x, bh, 0, 0);
+		} else {
+			x+= drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
+		}
+
 		w = TEXTW(tags[i]);
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
@@ -1229,9 +1273,18 @@ drawbar(Monitor *m)
 				urg & 1 << i);
 		x += w;
 	}
+
+	x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
+
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+
+	if (m == selmon) {
+		x += drawarrow(drw, &lastbg, &scheme[SchemeSel][ColBg], x, bh, 0, 0);
+	} else {
+		x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
+	}
 
 	if ((w = m->ww - tw - stw - x) > bh) {
 		if (m->sel) {
