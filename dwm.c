@@ -58,8 +58,8 @@
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
-#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+#define WIDTH(X)                ((X)->w + 2 * (X)->bw + gappx)
+#define HEIGHT(X)               ((X)->h + 2 * (X)->bw + gappx)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 
@@ -1822,12 +1822,58 @@ resizebarwin(Monitor *m) {
 void
 resizeclient(Client *c, int x, int y, int w, int h)
 {
-	XWindowChanges wc;
+	int					lgappx	= gappx;
+	XWindowChanges		wc;
+	int					gapN, gapE, gapW;
+	int					edges	= 0;
+	int					margin;
 
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
+	if (c->mon->mw <= 1024 || c->mon->mh <= 1024) {
+		lgappx = 0;
+	}
+
+	margin = lgappx * 2;
+
+	/*
+		Clients are generally arranged relative to the client above them, so
+		include the entire gap to account for the one below it.
+	*/
+	gapN = lgappx;
+
+	gapE = lgappx / 2;
+	gapW = lgappx - gapE;
+
+
+	/*
+		Adjust gaps for any edge of a client that is next to the edge of the
+		monitor.
+	*/
+	if ((c->mon->mx + c->mon->mw) - (x + w) < margin) {
+		gapE = 0;
+		edges++;
+	}
+	if ((c->mon->my + c->mon->mh) - (y + h) < margin) {
+		edges++;
+	}
+
+	if ((x - c->mon->mx) < margin) {
+		gapW = 0;
+		edges++;
+	}
+	if ((y - c->mon->my) < margin) {
+		gapN = 0;
+		edges++;
+	}
+
+	if (c->isfloating || edges >= 4) {
+		gapN = gapE = gapW = 0;
+	}
+
+	c->oldx = c->x; c->x = wc.x = x + gapW;
+	c->oldy = c->y; c->y = wc.y = y + gapN;
+	c->oldw = c->w; c->w = wc.width  = w - (gapW + gapE);
+	c->oldh = c->h; c->h = wc.height = h - (gapN);
+
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
