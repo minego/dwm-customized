@@ -142,6 +142,8 @@ typedef struct {
 	void (*arrange)(Monitor *);
 } Layout;
 
+#define MAX_TAGLEN 16
+
 struct Monitor {
 	char ltsymbol[16];
 	float mfact;
@@ -165,6 +167,13 @@ struct Monitor {
 	float colfact[3];     /* Relative sizes of the different column types */
 	int nmastercols;      /* The number of master columns to use */
 	int nrightcols;       /* The number of right "stack" columns to use */
+
+	unsigned int createtag[2]; /* Create windows on the last tag directly selected, not all selected */
+	struct {
+		unsigned int tagset;
+		Client *zoomed;
+	} remembered[MAX_TAGLEN];
+	Client *zoomed[2];
 };
 
 typedef struct {
@@ -233,6 +242,7 @@ static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
+static void nametag(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void opacity(Client *c, double opacity);
 static void pop(Client *);
@@ -301,6 +311,10 @@ static Client *swallowingclient(Window w);
 static Client *termforwin(const Client *c);
 static pid_t winpid(Window w);
 
+static void keyrelease(XEvent *e);
+static void combotag(const Arg *arg);
+static void comboview(const Arg *arg);
+
 /* variables */
 static Systray *systray =  NULL;
 static const char broken[] = "broken";
@@ -313,6 +327,7 @@ static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress] = buttonpress,
+	[ButtonRelease] = keyrelease,
 	[ClientMessage] = clientmessage,
 	[ConfigureRequest] = configurerequest,
 	[ConfigureNotify] = configurenotify,
@@ -320,6 +335,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[EnterNotify] = enternotify,
 	[Expose] = expose,
 	[FocusIn] = focusin,
+	[KeyRelease] = keyrelease,
 	[KeyPress] = keypress,
 	[MappingNotify] = mappingnotify,
 	[MapRequest] = maprequest,
@@ -339,6 +355,8 @@ static Window root, wmcheckwin;
 
 static xcb_connection_t *xcon;
 
+static int combo = 0;
+
 /* configuration, allows nested code to access above variables */
 #include "config.h"
 
@@ -346,6 +364,92 @@ static xcb_connection_t *xcon;
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
+void
+keyrelease(XEvent *e) {
+	combo = 0;
+}
+
+void
+combotag(const Arg *arg) {
+	if(selmon->sel && arg->ui & TAGMASK) {
+		if (combo) {
+			selmon->sel->tags |= arg->ui & TAGMASK;
+		} else {
+			combo = 1;
+			selmon->sel->tags = arg->ui & TAGMASK;
+		}
+		focus(NULL);
+		arrange(selmon);
+	}
+}
+
+void
+remembertag(void) {
+	int curtag = selmon->createtag[selmon->seltags];
+
+	if (curtag < MAX_TAGLEN) {
+		selmon->remembered[curtag].tagset = selmon->tagset[selmon->seltags];
+		selmon->remembered[curtag].zoomed = selmon->clients;
+	}
+}
+
+void
+comboview(const Arg *arg) {
+	unsigned newtags = (1 << arg->i) & TAGMASK;
+	unsigned int newcreate;
+	int active = (selmon->createtag[selmon->seltags] == arg->i);
+	Client *c;
+
+	remembertag();
+
+	if (combo && -1 != arg->i) {
+		selmon->tagset[selmon->seltags] |= newtags;
+	} else {
+		selmon->seltags ^= 1;	/*toggle tagset*/
+
+		if (-1 == arg->i) {
+			/* A specific tag was not specified */
+			newtags = selmon->tagset[selmon->seltags];
+			newcreate = selmon->createtag[selmon->seltags];
+			active = 0;
+		} else {
+			newcreate = arg->i;
+		}
+
+		combo = 1;
+
+		if (active) {
+			/* Select twice to isolate the tag */
+			selmon->tagset[selmon->seltags] = newtags;
+		} else if (arg->i < MAX_TAGLEN) {
+			/* Restore whatever was previously on this tag */
+			selmon->tagset[selmon->seltags] = newtags | selmon->remembered[newcreate].tagset;
+			selmon->zoomed[selmon->seltags] = selmon->remembered[newcreate].zoomed;
+		}
+
+		selmon->createtag[selmon->seltags] = newcreate;
+
+		/*
+			Zoom the correct client
+
+			Verify that c is in fact still a valid pointer first though.
+		*/
+		for (c = selmon->clients; c; c = c->next) {
+			if (c == selmon->zoomed[selmon->seltags]) {
+				break;
+			}
+		}
+
+		if (c) {
+			pop(c);
+		}
+	}
+	focus(NULL);
+	arrange(selmon);
+}
+
+
+
 void
 applyrules(Client *c)
 {
@@ -1561,6 +1665,34 @@ movemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+}
+
+void
+nametag(const Arg *arg) {
+	char *p, name[MAX_TAGNAME_LEN];
+	FILE *f;
+	int i;
+
+	errno = 0; // popen(3p) says on failure it "may" set errno
+	if(!(f = popen("dmenu < /dev/null", "r"))) {
+		fprintf(stderr, "dwm: popen 'dmenu < /dev/null' failed%s%s\n", errno ? ": " : "", errno ? strerror(errno) : "");
+		return;
+	}
+	if (!(p = fgets(name, MAX_TAGNAME_LEN, f)) && (i = errno) && ferror(f))
+		fprintf(stderr, "dwm: fgets failed: %s\n", strerror(i));
+	if (pclose(f) < 0)
+		fprintf(stderr, "dwm: pclose failed: %s\n", strerror(errno));
+	if(!p)
+		return;
+	if((p = strchr(name, '\n')))
+		*p = '\0';
+
+	for(i = 0; i < LENGTH(tags); i++)
+		if(selmon->tagset[selmon->seltags] & (1 << i)) {
+			sprintf(tags[i], TAG_PREPEND, i+1);
+			strcat(tags[i], name);
+		}
+	drawbars();
 }
 
 Client *
