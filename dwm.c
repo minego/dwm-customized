@@ -1115,6 +1115,10 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 		}
 	}
 
+	if (showsystray && m == systraytomon(m)) {
+		w += getsystraywidth();
+	}
+
 	w += 2; /* 1px padding on both sides */
 	ret = x = m->ww - w;
 
