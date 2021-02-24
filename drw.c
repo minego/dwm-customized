@@ -434,3 +434,38 @@ drw_cur_free(Drw *drw, Cur *cursor)
 	XFreeCursor(drw->dpy, cursor->cursor);
 	free(cursor);
 }
+
+void
+drw_arrow(Drw *drw, int x, int y, unsigned int w, unsigned int h, int backwards)
+{
+	XPoint	points[4];
+
+	if (!drw || !drw->scheme)
+		return;
+
+	XSetForeground(drw->dpy, drw->gc, backwards ? drw->scheme[ColFg].pixel : drw->scheme[ColBg].pixel);
+	XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
+
+	XSetForeground(drw->dpy, drw->gc, backwards ? drw->scheme[ColBg].pixel : drw->scheme[ColFg].pixel);
+
+	if (backwards) {
+		points[0].x = x + w;
+		points[1].x = x + 1;
+		points[2].x = x + 1;
+		points[3].x = x + w;
+	} else {
+		points[0].x = x;
+		points[1].x = x + w - 1;
+		points[2].x = x + w - 1;
+		points[3].x = x;
+	}
+
+	points[0].y = y;
+	points[1].y = y + (h / 2) - 1;
+	points[2].y = y + (h / 2);
+	points[3].y = y + h - 1;
+
+	XFillPolygon(drw->dpy, drw->drawable, drw->gc, points,
+			sizeof(points) / sizeof(points[0]), Nonconvex, CoordModeOrigin);
+}
+

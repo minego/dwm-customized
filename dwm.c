@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
@@ -1020,41 +1022,67 @@ dirtomon(int dir)
 
 int
 drawstatusbar(Monitor *m, int bh, char* stext) {
-	int ret, i, w, x, len;
-	short isCode = 0;
-	char *text;
-	char *p;
+	int ret, w, x;
+	char *cmd, *value, *text, *next;
 
-	len = strlen(stext) + 1 ;
-	if (!(text = (char*) malloc(sizeof(char)*len)))
-		die("malloc");
-	p = text;
-	memcpy(text, stext, len);
+	/* Skip any leading whitespace */
+	while ((*stext && isspace(*stext))) {
+		stext++;
+	}
+
+	if (!(text = strdup(stext))) {
+		die("strdup");
+	}
 
 	/* compute width of the status text */
 	w = 0;
-	i = -1;
-	while (text[++i]) {
-		if (text[i] == '^') {
-			if (!isCode) {
-				isCode = 1;
-				text[i] = '\0';
-				w += TEXTW(text) - lrpad;
-				text[i] = '^';
-				if (text[++i] == 'f')
-					w += atoi(text + ++i);
-			} else {
-				isCode = 0;
-				text = text + i + 1;
-				i = -1;
+	next = text;
+	while ((value = next)) {
+		if ((cmd = strchr(value, '^'))) {
+			*cmd = '\0';
+			cmd++;
+
+			if ((next = strchr(cmd, '^'))) {
+				*next = '\0';
+				next++;
 			}
+		} else {
+			next = NULL;
+		}
+
+		/*
+			value:	Current text chunk
+			cmd:	Next command
+			next:	The text immediately after the curren tcommand
+		*/
+		if (value && *value) {
+			w += TEXTW(value) - lrpad;
+		}
+
+		if (cmd) {
+			switch (*cmd) {
+				case 'a':
+					w += (bh / 2) * 3;
+					break;
+
+				case 'f':
+					w += atoi(cmd + 1);
+					break;
+			}
+
+			/* Cleanup */
+			cmd[-1] = '^';
+		}
+
+		/* Cleanup */
+		if (next) {
+			next[-1] = '^';
 		}
 	}
-	if (!isCode)
-		w += TEXTW(text) - lrpad;
-	else
-		isCode = 0;
-	text = p;
+
+	if (showsystray && m == systraytomon(m)) {
+		w += getsystraywidth();
+	}
 
 	w += 2; /* 1px padding on both sides */
 	ret = x = m->ww - w;
@@ -1066,68 +1094,103 @@ drawstatusbar(Monitor *m, int bh, char* stext) {
 	x++;
 
 	/* process status text */
-	i = -1;
-	while (text[++i]) {
-		if (text[i] == '^' && !isCode) {
-			isCode = 1;
+	next = text;
+	while ((value = next)) {
+		if ((cmd = strchr(value, '^'))) {
+			*cmd = '\0';
+			cmd++;
 
-			text[i] = '\0';
-			w = TEXTW(text) - lrpad;
-			drw_text(drw, x, 0, w, bh, 0, text, 0);
+			if ((next = strchr(cmd, '^'))) {
+				*next = '\0';
+				next++;
+			}
+		} else {
+			next = NULL;
+		}
 
+		/*
+			value:	Current text chunk
+			cmd:	Next command
+			next:	The text immediately after the curren tcommand
+		*/
+		if (value && *value) {
+			w = TEXTW(value) - lrpad;
+			drw_text(drw, x, 0, w, bh, 0, value, 0);
 			x += w;
+		}
 
-			/* process code */
-			while (text[++i] != '^') {
-				if (text[i] == 'c') {
-					char buf[8];
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					drw_clr_create(drw, &drw->scheme[ColFg], buf);
-					i += 7;
-				} else if (text[i] == 'b') {
-					char buf[8];
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					drw_clr_create(drw, &drw->scheme[ColBg], buf);
-					i += 7;
-				} else if (text[i] == 'a') { /* arrow */
-					char buf[8];
-					memcpy(buf, (char*)text+i+1, 7);
-					buf[7] = '\0';
-					drw_clr_create(drw, &drw->scheme[ColBg], buf);
-					i += 7;
-				} else if (text[i] == 'd') {
+		if (cmd) {
+			switch (*cmd) {
+				case 'c': /* fg Color */
+					drw_clr_create(drw, &drw->scheme[ColFg], cmd + 1);
+					break;
+
+				case 'b': /* Bg color */
+					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1);
+					break;
+
+				case 'a': /* Arrow (set the bg, and transition to the new color with an arrow */
+					/* Pad before the arrow */
+					drw_rect(drw, x, 0, (bh / 2), bh, 1, 1);
+					x += bh / 2;
+
+					/* Set the fg color to be the previous bg color */
+					drw->scheme[ColFg] = drw->scheme[ColBg];
+
+					/* Set the new bg color */
+					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1);
+
+					/* Draw the actual arrow */
+					drw_arrow(drw, x, 0, bh / 2, bh, 1);
+					x += bh / 2;
+
+					/* Restore the fg */
+					drw->scheme[ColFg] = scheme[SchemeNorm][ColFg];
+
+					/* Pad after the arrow */
+					drw_rect(drw, x, 0, (bh / 2), bh, 1, 1);
+					x += bh / 2;
+					break;
+
+				case 'd':
 					drw->scheme[ColFg] = scheme[SchemeNorm][ColFg];
 					drw->scheme[ColBg] = scheme[SchemeNorm][ColBg];
-				} else if (text[i] == 'r') {
-					int rx = atoi(text + ++i);
-					while (text[++i] != ',');
-					int ry = atoi(text + ++i);
-					while (text[++i] != ',');
-					int rw = atoi(text + ++i);
-					while (text[++i] != ',');
-					int rh = atoi(text + ++i);
+					break;
+
+				case 'r': {
+					int rx, ry, rw, rh;
+					char *v = cmd + 1, *end;
+
+					rx = strtoul(v, &end, 0);
+					v = (end && ',' == *end) ? ++end : "";
+					ry = strtoul(v, &end, 0);
+					v = (end && ',' == *end) ? ++end : "";
+					rw = strtoul(v, &end, 0);
+					v = (end && ',' == *end) ? ++end : "";
+					rh = strtoul(v, &end, 0);
+					v = (end && ',' == *end) ? ++end : "";
 
 					drw_rect(drw, rx + x, ry, rw, rh, 1, 0);
-				} else if (text[i] == 'f') {
-					x += atoi(text + ++i);
+					break;
 				}
+
+				case 'f':
+					x += atoi(cmd + 1);
+					break;
 			}
 
-			text = text + i + 1;
-			i=-1;
-			isCode = 0;
+			/* Cleanup */
+			cmd[-1] = '^';
+		}
+
+		/* Cleanup */
+		if (next) {
+			next[-1] = '^';
 		}
 	}
 
-	if (!isCode) {
-		w = TEXTW(text) - lrpad;
-		drw_text(drw, x, 0, w, bh, 0, text, 0);
-	}
-
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	free(p);
+	free(text);
 
 	return ret;
 }
