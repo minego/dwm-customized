@@ -177,6 +177,7 @@ typedef struct {
 	int noswallow;
 	double opacity;
 	int monitor;
+	Bool isLeft;
 } Rule;
 
 typedef struct Systray   Systray;
@@ -372,6 +373,7 @@ applyrules(Client *c)
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
 			c->opacity = r->opacity;
+			c->isLeft = r->isLeft;
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
