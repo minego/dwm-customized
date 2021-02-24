@@ -1020,10 +1020,45 @@ dirtomon(int dir)
 	return m;
 }
 
+/*
+	Draw an arrow to transition between one color scheme and another.
+
+	This will also set the scheme.
+*/
+static int drawarrow(Drw *drw, Clr **prevbg, Clr *bg, int x, int bh, int backwards, int invert)
+{
+	Clr		bkbg	= drw->scheme[ColBg];
+	Clr		bkfg	= drw->scheme[ColFg];
+
+	/* Set the fg color to be the previous bg color */
+	if (prevbg) {
+		drw->scheme[ColFg] = **prevbg;
+	}
+
+	/* Set the new bg color */
+	drw->scheme[ColBg] = *bg;
+
+	/* Draw the actual arrow */
+	drw_arrow(drw, x, 0, bh / 2, bh, backwards);
+
+	/* Restore the colors */
+	drw->scheme[ColBg] = bkbg;
+	drw->scheme[ColFg] = bkfg;
+
+	/* Save the new bg for the next arrow */
+	if (prevbg) {
+		*prevbg = bg;
+	}
+
+	return(bh / 2);
+}
+
 int
-drawstatusbar(Monitor *m, int bh, char* stext) {
+drawstatusbar(Monitor *m, int bh, char* stext)
+{
 	int ret, w, x;
 	char *cmd, *value, *text, *next;
+	Clr *lastbg;
 
 	/* Skip any leading whitespace */
 	while ((*stext && isspace(*stext))) {
@@ -1080,17 +1115,23 @@ drawstatusbar(Monitor *m, int bh, char* stext) {
 		}
 	}
 
-	if (showsystray && m == systraytomon(m)) {
-		w += getsystraywidth();
-	}
-
 	w += 2; /* 1px padding on both sides */
 	ret = x = m->ww - w;
 
 	drw_setscheme(drw, scheme[LENGTH(colors)]);
 	drw->scheme[ColFg] = scheme[SchemeNorm][ColFg];
 	drw->scheme[ColBg] = scheme[SchemeNorm][ColBg];
+
 	drw_rect(drw, x, 0, w, bh, 1, 1);
+
+	/* Arrow to separate the title bar from the status area */
+	if (m == selmon) {
+		lastbg = &scheme[SchemeSel][ColBg];
+	} else {
+		lastbg = &scheme[SchemeNorm][ColBg];
+	}
+	drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x - (bh / 2), bh, 1, 0);
+
 	x++;
 
 	/* process status text */
@@ -1195,35 +1236,6 @@ drawstatusbar(Monitor *m, int bh, char* stext) {
 	return ret;
 }
 
-/*
-	Draw an arrow to transition between one color scheme and another.
-
-	This will also set the scheme.
-*/
-static int drawarrow(Drw *drw, Clr **prevbg, Clr *bg, int x, int bh, int backwards, int invert)
-{
-	Clr		bkbg	= drw->scheme[ColBg];
-	Clr		bkfg	= drw->scheme[ColFg];
-
-	/* Set the fg color to be the previous bg color */
-	drw->scheme[ColFg] = **prevbg;
-
-	/* Set the new bg color */
-	drw->scheme[ColBg] = *bg;
-
-	/* Draw the actual arrow */
-	drw_arrow(drw, x, 0, bh / 2, bh, backwards);
-
-	/* Restore the colors */
-	drw->scheme[ColBg] = bkbg;
-	drw->scheme[ColFg] = bkfg;
-
-	/* Save the new bg for the next arrow */
-	*prevbg = bg;
-
-	return(bh / 2);
-}
-
 void
 drawbar(Monitor *m)
 {
@@ -1233,6 +1245,9 @@ drawbar(Monitor *m)
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
 	Clr *lastbg;
+
+	drw_setscheme(drw, scheme[SchemeSel]);
+	drw_rect(drw, 0, 0, m->ww, bh, 1, 1);
 
 	if(showsystray && m == systraytomon(m))
 		stw = getsystraywidth();
