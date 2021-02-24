@@ -41,8 +41,14 @@ static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int attachbelow = 1;    /* 1 means attach after the currently active window */
 
+/* Variable column layout */
+static const int nmastercols	= 1;	/* number of master columns for n column layout */
+static const int nrightcols		= 1;	/* number of right columns for n column layout */
+#include "varcol.c"
+
 static const Layout layouts[] = {
 	/* symbol     arrange function */
+	{ "=O=",      varcol },  /* first entry is default */
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
@@ -73,6 +79,12 @@ static Key keys[] = {
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+
+	{ MODKEY|ShiftMask,             XK_i,      incncols,       {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_d,      incncols,       {.i = -1 } },
+	{ MODKEY,                       XK_h,      setcolfact,     {.f = -0.05} },
+	{ MODKEY,                       XK_l,      setcolfact,     {.f = +0.05} },
+
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
@@ -80,6 +92,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
+	{ MODKEY|ShiftMask,             XK_Tab,    pushleft,       {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },

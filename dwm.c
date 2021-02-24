@@ -107,6 +107,7 @@ struct Client {
 	double opacity;
 	Monitor *mon;
 	Window win;
+	Bool isLeft; /* If set the client should be placed in the left column */
 };
 
 typedef struct {
@@ -140,6 +141,10 @@ struct Monitor {
 	Monitor *next;
 	Window barwin;
 	const Layout *lt[2];
+
+	float colfact[3];     /* Relative sizes of the different column types */
+	int nmastercols;      /* The number of master columns to use */
+	int nrightcols;       /* The number of right "stack" columns to use */
 };
 
 typedef struct {
@@ -748,6 +753,14 @@ createmon(void)
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
+
+	m->colfact[0] = colfact[0];
+	m->colfact[1] = colfact[1];
+	m->colfact[2] = colfact[2];
+
+	m->nmaster = nmaster;
+	m->nmastercols = nmastercols;
+	m->nrightcols = nrightcols;
 	return m;
 }
 
