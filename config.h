@@ -17,17 +17,11 @@ static const double defaultopacity  = 1.0;
 // static const char *fonts[]         = { "SauceCodePro Nerd Font Mono:size=10", "SauceCodePro Nerd Font:size=10", "monospace:size=10" };
 static const char *fonts[]         = { "monospace:size=10", "TerminessTTF Nerd Font Mono:size=24" };
 static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#dddddd";
-static const char col_black[]       = "#000000";
-static const char col_white[]       = "#ffffff";
-static const char col_orange[]      = "#e1aa5d";
+static const char col_orange[]      = "#ffe1aa5d";
 static const char *colors[][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_white, col_black, col_gray1 },
-	[SchemeSel]  = { col_black, col_orange,col_gray4  },
+	/*					fg				bg				border   */
+	[SchemeNorm] = {	"#ffffffff",	"#00000000",	"#00000000" },
+	[SchemeSel]  = {	"#ff000000",	col_orange,		"#ffffffff" },
 };
 static const unsigned int alphas[][3]      = {
 	/*               fg         bg         border     */
