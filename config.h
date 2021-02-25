@@ -44,6 +44,8 @@ static const Rule rules[] = {
 	{ "googlemessages",		NULL,		NULL,			1 << 5,		False,		False,		0,			1.0,	-1,		True	},
 
 	{ "Spotify",			NULL,		NULL,			1 << 7,		False,		False,		0,			1.0,	-1,		False	},
+	{ "Mail",				NULL,		NULL,			1 << 6,		False,		False,		0,			1.0,	-1,		False	},
+	{ "Code",				NULL,		NULL,			1 << 1,		False,		False,		0,			1.0,	-1,		False	},
 };
 
 /* layout(s) */
