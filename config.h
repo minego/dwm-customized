@@ -14,7 +14,8 @@ static const int swallowfloating    = 0;        /* 1 means swallow floating wind
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const double defaultopacity  = 1.0;
-static const char *fonts[]          = { "monospace:size=10" };
+// static const char *fonts[]         = { "SauceCodePro Nerd Font Mono:size=10", "SauceCodePro Nerd Font:size=10", "monospace:size=10" };
+static const char *fonts[]         = { "monospace:size=10", "TerminessTTF Nerd Font Mono:size=24" };
 static const char dmenufont[]       = "monospace:size=10";
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
@@ -36,9 +37,11 @@ static const unsigned int alphas[][3]      = {
 
 /* tagging */
 #define MAX_TAGNAME_LEN 14		/* excludes TAG_PREPEND */
-#define TAG_PREPEND "%1i:"		/* formatted as 2 chars */
+// #define TAG_PREPEND "%1i:"		/* formatted as 2 chars */
+#define TAG_PREPEND ""		/* blank */
 #define MAX_TAGLEN 16			/* altogether */
-static char tags[][MAX_TAGLEN] = { "1:www", "2:code", "3:win", "4:mac", "5", "6:chat", "7:mail", "8:music", "9" };
+// static char tags[][MAX_TAGLEN] = { "www", "code", "win", "mac", "5", "chat", "mail", "music", "9" };
+static char tags[][MAX_TAGLEN] = { "爵", "", "", "", "", "﬐", "", "", "" };
 
 static const Rule rules[] = {
 	/* xprop(1):
