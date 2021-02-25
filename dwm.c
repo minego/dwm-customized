@@ -1139,11 +1139,7 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 	drw_rect(drw, x, 0, w, bh, 1, 1);
 
 	/* Arrow to separate the title bar from the status area */
-	if (m == selmon && m->sel) {
-		prevbg = scheme[SchemeSel][ColBg];
-	} else {
-		prevbg = scheme[SchemeNorm][ColBg];
-	}
+	prevbg = scheme[SchemeNorm][ColBg];
 	prevbgp = &prevbg;
 	drawarrow(drw, &prevbgp, &scheme[SchemeNorm][ColBg], x - (bh / 2), bh, 0, 0);
 
@@ -1294,22 +1290,18 @@ drawbar(Monitor *m)
 		x += w;
 	}
 
-	x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
+	x += drawarrow(drw, &lastbg, &scheme[SchemeSel][ColBg], x, bh, 0, 0);
 
 	w = blw = TEXTW(m->ltsymbol);
-	drw_setscheme(drw, scheme[SchemeNorm]);
+	drw_setscheme(drw, scheme[SchemeSel]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
-	if (m == selmon && m->sel) {
-		x += drawarrow(drw, &lastbg, &scheme[SchemeSel][ColBg], x, bh, 0, 0);
-	} else {
-		x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
-	}
+	x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
 
 	if ((w = m->ww - tw - stw - x) > bh) {
 		if (m->sel) {
-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
-			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
+			drw_setscheme(drw, scheme[SchemeNorm]);
+			drw_text(drw, x, 0, w + stw, bh, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
 		} else {
