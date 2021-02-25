@@ -38,7 +38,6 @@ static const unsigned int alphas[][3]      = {
 /* tagging */
 #define MAX_TAGNAME_LEN 14		/* excludes TAG_PREPEND */
 // #define TAG_PREPEND "%1i:"		/* formatted as 2 chars */
-#define TAG_PREPEND ""		/* blank */
 #define MAX_TAGLEN 16			/* altogether */
 // static char tags[][MAX_TAGLEN] = { "www", "code", "win", "mac", "5", "chat", "mail", "music", "9" };
 static char tags[][MAX_TAGLEN] = { "爵", "", "", "", "", "﬐", "", "", "" };

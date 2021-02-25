@@ -1174,11 +1174,11 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 		if (cmd) {
 			switch (*cmd) {
 				case 'c': /* fg Color */
-					drw_clr_create(drw, &drw->scheme[ColFg], cmd + 1, OPAQUE);
+					drw_clr_create(drw, &drw->scheme[ColFg], cmd + 1, -1);
 					break;
 
 				case 'b': /* Bg color */
-					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1, OPAQUE);
+					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1, -1);
 					break;
 
 				case 'a': /* Arrow (set the bg, and transition to the new color with an arrow */
@@ -1187,7 +1187,7 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 					prevbgp = &prevbg;
 
 					/* Set the new bg color */
-					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1, OPAQUE);
+					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1, -1);
 					x += drawarrow(drw, &prevbgp, &drw->scheme[ColBg], x, bh, 0, 0);
 					break;
 
@@ -1832,7 +1832,11 @@ nametag(const Arg *arg) {
 
 	for(i = 0; i < LENGTH(tags); i++)
 		if(selmon->tagset[selmon->seltags] & (1 << i)) {
+#ifdef TAG_PREPEND
 			sprintf(tags[i], TAG_PREPEND, i+1);
+#else
+			*tags[i] = '\0';
+#endif
 			strcat(tags[i], name);
 		}
 	drawbars();

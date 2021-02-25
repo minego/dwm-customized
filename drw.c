@@ -197,16 +197,42 @@ drw_fontset_free(Fnt *font)
 }
 
 void
-drw_clr_create(Drw *drw, Clr *dest, const char *clrname, unsigned int alpha)
+drw_clr_create(Drw *drw, Clr *dest, const char *clrname, int alpha)
 {
+	const char		*c;
+	char			rgb[8];
+	char			a[3];
+
 	if (!drw || !dest || !clrname)
 		return;
 
-	if (!XftColorAllocName(drw->dpy, drw->visual, drw->cmap,
-	                       clrname, dest))
-		die("error, cannot allocate color '%s'", clrname);
+	c = clrname;
 
-	dest->pixel = (dest->pixel & 0x00ffffffU) | (alpha << 24);
+	if ('#' == *c) {
+		c++;
+	}
+
+	if (strlen(c) > 6) {
+		/* argb */
+		a[0] = c[0];
+		a[1] = c[1];
+		a[2] = c[0];
+
+		c += 2;
+		alpha = (char) strtoul(a, 0, 16);
+	} else if (alpha < 0) {
+		alpha = 0xff;
+	}
+
+	*rgb = '#';
+	strncpy(rgb + 1, c, 6);
+
+	if (!XftColorAllocName(drw->dpy, drw->visual, drw->cmap, rgb, dest))
+		die("error, cannot allocate color '%s'", rgb);
+
+	if (alpha >= 0) {
+		dest->pixel = ((dest->pixel & 0x00ffffffU) | (alpha << 24)) & 0xffffffffU;
+	}
 }
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
