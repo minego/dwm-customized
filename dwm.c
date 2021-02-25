@@ -1064,7 +1064,8 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 {
 	int ret, w, x;
 	char *cmd, *value, *text, *next;
-	Clr *lastbg;
+	Clr prevbg;
+	Clr *prevbgp = &prevbg;
 
 	/* Skip any leading whitespace */
 	while ((*stext && isspace(*stext))) {
@@ -1103,7 +1104,7 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 		if (cmd) {
 			switch (*cmd) {
 				case 'a':
-					w += (bh / 2) * 3;
+					w += (bh / 2);
 					break;
 
 				case 'f':
@@ -1121,6 +1122,9 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 		}
 	}
 
+	/* Include space for a closing arrow as well */
+	w += (bh / 2);
+
 	if (showsystray && m == systraytomon(m)) {
 		w += getsystraywidth();
 	}
@@ -1136,11 +1140,12 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 
 	/* Arrow to separate the title bar from the status area */
 	if (m == selmon && m->sel) {
-		lastbg = &scheme[SchemeSel][ColBg];
+		prevbg = scheme[SchemeSel][ColBg];
 	} else {
-		lastbg = &scheme[SchemeNorm][ColBg];
+		prevbg = scheme[SchemeNorm][ColBg];
 	}
-	drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x - (bh / 2), bh, 1, 0);
+	prevbgp = &prevbg;
+	drawarrow(drw, &prevbgp, &scheme[SchemeNorm][ColBg], x - (bh / 2), bh, 0, 0);
 
 	x++;
 
@@ -1181,26 +1186,13 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 					break;
 
 				case 'a': /* Arrow (set the bg, and transition to the new color with an arrow */
-					/* Pad before the arrow */
-					drw_rect(drw, x, 0, (bh / 2), bh, 1, 1);
-					x += bh / 2;
-
-					/* Set the fg color to be the previous bg color */
-					drw->scheme[ColFg] = drw->scheme[ColBg];
+					/* Store the previous background */
+					prevbg = drw->scheme[ColBg];
+					prevbgp = &prevbg;
 
 					/* Set the new bg color */
 					drw_clr_create(drw, &drw->scheme[ColBg], cmd + 1, OPAQUE);
-
-					/* Draw the actual arrow */
-					drw_arrow(drw, x, 0, bh / 2, bh, 1);
-					x += bh / 2;
-
-					/* Restore the fg */
-					drw->scheme[ColFg] = scheme[SchemeNorm][ColFg];
-
-					/* Pad after the arrow */
-					drw_rect(drw, x, 0, (bh / 2), bh, 1, 1);
-					x += bh / 2;
+					x += drawarrow(drw, &prevbgp, &drw->scheme[ColBg], x, bh, 0, 0);
 					break;
 
 				case 'd':
@@ -1239,6 +1231,9 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 			next[-1] = '^';
 		}
 	}
+
+	/* Final arrow to end the status bar area and restore the normal bg color */
+	drawarrow(drw, &prevbgp, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
 
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	free(text);
