@@ -196,43 +196,68 @@ drw_fontset_free(Fnt *font)
 	}
 }
 
+static unsigned short
+hex_to_short(const char *hex)
+{
+	char		buf[3];
+
+	if (!hex || strlen(hex) < 2) {
+		return 0;
+	}
+
+	buf[0] = hex[0];
+	buf[1] = hex[1];
+	buf[2] = '\0';
+
+	return (unsigned short) strtoul(buf, 0, 16);
+}
+
 void
 drw_clr_create(Drw *drw, Clr *dest, const char *clrname, int alpha)
 {
+	XRenderColor	rc;
 	const char		*c;
-	char			rgb[8];
-	char			a[3];
+
+	memset(&rc, 0, sizeof(rc));
 
 	if (!drw || !dest || !clrname)
 		return;
 
 	c = clrname;
-
 	if ('#' == *c) {
 		c++;
 	}
 
-	if (strlen(c) > 6) {
+	if (strlen(c) == 8) {
 		/* argb */
-		a[0] = c[0];
-		a[1] = c[1];
-		a[2] = c[0];
-
+		alpha = hex_to_short(c);
 		c += 2;
-		alpha = (char) strtoul(a, 0, 16);
-	} else if (alpha < 0) {
+	} else if (alpha > 0) {
+		;
+	} else {
+		/* Default to opaque */
 		alpha = 0xff;
 	}
+	rc.alpha = alpha | (alpha << 8) ;
 
-	*rgb = '#';
-	strncpy(rgb + 1, c, 6);
+	if (strlen(c) == 6) {
+		rc.red	= hex_to_short(c) << 8;
+		c += 2;
 
-	if (!XftColorAllocName(drw->dpy, drw->visual, drw->cmap, rgb, dest))
-		die("error, cannot allocate color '%s'", rgb);
+		rc.green= hex_to_short(c) << 8;
+		c += 2;
 
-	if (alpha >= 0) {
-		dest->pixel = ((dest->pixel & 0x00ffffffU) | (alpha << 24)) & 0xffffffffU;
+		rc.blue	= hex_to_short(c) << 8;
+		c += 2;
 	}
+
+	if (XftColorAllocName(drw->dpy, drw->visual, drw->cmap, clrname, dest))
+	{
+		printf("Okay...\n");
+	}
+
+	if (!XftColorAllocValue(drw->dpy, drw->visual, drw->cmap, &rc, dest))
+		die("error, cannot allocate color '%s'", clrname);
 }
 
 /* Wrapper to create color schemes. The caller has to call free(3) on the
