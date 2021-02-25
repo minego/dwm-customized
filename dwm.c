@@ -1137,7 +1137,7 @@ drawstatusbar(Monitor *m, int bh, char* stext)
 	drw_rect(drw, x, 0, w, bh, 1, 1);
 
 	/* Arrow to separate the title bar from the status area */
-	if (m == selmon) {
+	if (m == selmon && m->sel) {
 		lastbg = &scheme[SchemeSel][ColBg];
 	} else {
 		lastbg = &scheme[SchemeNorm][ColBg];
@@ -1307,7 +1307,7 @@ drawbar(Monitor *m)
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
-	if (m == selmon) {
+	if (m == selmon && m->sel) {
 		x += drawarrow(drw, &lastbg, &scheme[SchemeSel][ColBg], x, bh, 0, 0);
 	} else {
 		x += drawarrow(drw, &lastbg, &scheme[SchemeNorm][ColBg], x, bh, 0, 0);
@@ -1321,7 +1321,7 @@ drawbar(Monitor *m)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
 		} else {
 			drw_setscheme(drw, scheme[SchemeNorm]);
-			drw_rect(drw, x, 0, w, bh, 1, 1);
+			drw_rect(drw, x, 0, w + stw, bh, 1, 1);
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww - stw, bh);
