@@ -17,7 +17,7 @@ static const double defaultopacity  = 1.0;
 // static const char *fonts[]         = { "SauceCodePro Nerd Font Mono:size=10", "SauceCodePro Nerd Font:size=10", "monospace:size=10" };
 static const char *fonts[]         = { "monospace:size=10", "TerminessTTF Nerd Font Mono:size=24" };
 static const char dmenufont[]       = "monospace:size=10";
-static const char col_orange[]      = "#ffe1aa5d";
+static const char col_orange[]      = "#fff39d21";
 static const char *colors[][3]      = {
 	/*					fg				bg				border   */
 	[SchemeNorm] = {	"#ffffffff",	"#00000000",	"#00000000" },
