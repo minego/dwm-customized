@@ -23,11 +23,6 @@ static const char *colors[][3]      = {
 	[SchemeNorm] = {	"#ffffffff",	"#00000000",	"#00000000" },
 	[SchemeSel]  = {	"#ff000000",	col_orange,		"#ffffffff" },
 };
-static const unsigned int alphas[][3]      = {
-	/*               fg         bg         border     */
-	[SchemeNorm] = { OPAQUE,    0x0,       0x0 },
-	[SchemeSel]  = { OPAQUE,    OPAQUE,    OPAQUE },
-};
 
 /* tagging */
 #define MAX_TAGNAME_LEN 14		/* excludes TAG_PREPEND */
