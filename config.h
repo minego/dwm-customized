@@ -12,7 +12,7 @@ static const int topbar             = 1;        /* 0 means bottom bar */
 static const int usealtbar          = 1;        /* 1 means use non-dwm status bar */
 static const char *altbarclass      = "Polybar"; /* Alternate bar class name */
 static const char *alttrayname      = "tray";    /* Polybar tray instance name */
-static const char *altbarcmd        = "$HOME/bin/polybar.sh"; /* Alternate bar launch command */
+static const char *altbarcmd        = "$HOME/bin/launch-polybar"; /* Alternate bar launch command */
 static const double defaultopacity  = 1.0;
 // static const char *fonts[]         = { "SauceCodePro Nerd Font Mono:size=10", "SauceCodePro Nerd Font:size=10", "monospace:size=10" };
 static const char *fonts[]         = { "monospace:size=10", "TerminessTTF Nerd Font Mono:size=24" };
@@ -25,7 +25,7 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-static const char *tags[] = { "爵", "", "", "", "", "﬐", "", "", "" };
+static const char *tags[] = { "", "", "", "", "", "﬐", "", "ﱘ", "" };
 
 static const Rule rules[] = {
 	/* xprop(1):
