@@ -1,3 +1,4 @@
 .ccls-cache
 *.o
 dwm
+dwm-msg

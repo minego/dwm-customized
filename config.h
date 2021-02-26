@@ -25,11 +25,7 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-#define MAX_TAGNAME_LEN 14		/* excludes TAG_PREPEND */
-// #define TAG_PREPEND "%1i:"		/* formatted as 2 chars */
-#define MAX_TAGLEN 16			/* altogether */
-// static char tags[][MAX_TAGLEN] = { "www", "code", "win", "mac", "5", "chat", "mail", "music", "9" };
-static char tags[][MAX_TAGLEN] = { "爵", "", "", "", "", "﬐", "", "", "" };
+static const char *tags[] = { "爵", "", "", "", "", "﬐", "", "", "" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -125,7 +121,6 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	{ MODKEY,                       XK_n,      nametag,        {0} },
 	{ MODKEY|ShiftMask,             XK_KP_Add, changeopacity, {.f = +0.1}},
 	{ MODKEY|ShiftMask,             XK_KP_Subtract, changeopacity, {.f = -0.1}},
 	TAGKEYS(                        XK_1,                      0)
@@ -155,5 +150,23 @@ static Button buttons[] = {
 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
+};
+
+static const char *ipcsockpath = "/tmp/dwm.sock";
+static IPCCommand ipccommands[] = {
+  IPCCOMMAND(  view,                1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  toggleview,          1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  tag,                 1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  toggletag,           1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  tagmon,              1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  focusmon,            1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  focusstack,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  zoom,                1,      {ARG_TYPE_NONE}   ),
+  IPCCOMMAND(  incnmaster,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  killclient,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  togglefloating,      1,      {ARG_TYPE_NONE}   ),
+  IPCCOMMAND(  setmfact,            1,      {ARG_TYPE_FLOAT}  ),
+  IPCCOMMAND(  setlayoutsafe,       1,      {ARG_TYPE_PTR}    ),
+  IPCCOMMAND(  quit,                1,      {ARG_TYPE_NONE}   )
 };
 
