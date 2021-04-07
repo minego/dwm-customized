@@ -522,7 +522,15 @@ applyrules(Client *c)
 		XFree(ch.res_class);
 	if (ch.res_name)
 		XFree(ch.res_name);
-	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+
+	// c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+	c->tags = c->tags & TAGMASK;
+	if (!c->tags) {
+		c->tags = (1 << c->mon->createtag[c->mon->seltags]) & TAGMASK;
+	}
+	if (!c->tags) {
+		c->tags = c->mon->tagset[c->mon->seltags];
+	}
 }
 
 int
