@@ -3,7 +3,7 @@
 #include "push.c"
 
 /* appearance */
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
+static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int gappx		= 24;		/* gap between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int swallowfloating    = 0;        /* 1 means swallow floating windows by default */
@@ -42,6 +42,8 @@ static const Rule rules[] = {
 	{ "Spotify",			NULL,		NULL,			1 << 7,		False,		False,		0,			1.0,	-1,		False	},
 	{ "Mail",				NULL,		NULL,			1 << 6,		False,		False,		0,			1.0,	-1,		False	},
 	{ "Code",				NULL,		NULL,			1 << 1,		False,		False,		0,			1.0,	-1,		False	},
+
+	{ NULL,					NULL,		"Origin",       0,			True,		False,		0,			1.0,	-1,		False	},
 };
 
 /* layout(s) */

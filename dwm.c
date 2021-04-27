@@ -1692,6 +1692,17 @@ resizeclient(Client *c, int x, int y, int w, int h)
 
 	if (c->isfloating || edges >= 4) {
 		gapN = gapE = gapW = 0;
+	} else {
+		/*
+			MNG Hack
+
+			I am using picom/compton to show a "shadow" on just the bottom edge
+			as if it was a 1px border. But, I need a place to show this so steal
+			1px from the gapN.
+
+			This is very hacky, but works for my usecase.
+		*/
+		h--;
 	}
 
 	c->oldx = c->x; c->x = wc.x = x + gapW;
