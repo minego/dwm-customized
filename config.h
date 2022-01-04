@@ -43,6 +43,8 @@ static const Rule rules[] = {
 	{ "Mail",				NULL,		NULL,			1 << 6,		False,		False,		0,			1.0,	-1,		False	},
 	{ "Code",				NULL,		NULL,			1 << 1,		False,		False,		0,			1.0,	-1,		False	},
 
+	{ "Menu",				NULL,		NULL,			0,			True,		False,		0,			1.0,	-1,		False	},
+
 	{ NULL,					NULL,		"Origin",       0,			True,		False,		0,			1.0,	-1,		False	},
 };
 
@@ -78,14 +80,9 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *termcmd[]  = { "myterm", NULL };
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-// static const char *dmenucmd[]	= { "j4-dmenu-desktop", "--term=myterm", "--dmenu=~/bin/dmenu.sh", "--display-binary", NULL };
-static const char *dmenucmd[]	= { "appmenu.sh" };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
-	{ MODKEY,                       XK_slash,  spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
