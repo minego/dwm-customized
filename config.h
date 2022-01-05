@@ -12,7 +12,7 @@ static const int topbar             = 1;        /* 0 means bottom bar */
 static const int usealtbar          = 1;        /* 1 means use non-dwm status bar */
 static const char *altbarclass      = "Polybar"; /* Alternate bar class name */
 static const char *alttrayname      = "tray";    /* Polybar tray instance name */
-static const char *altbarcmd        = "$HOME/bin/launch-polybar"; /* Alternate bar launch command */
+static const char *altbarcmd        = "$HOME/.local/bin/launch-polybar"; /* Alternate bar launch command */
 static const double defaultopacity  = 1.0;
 // static const char *fonts[]         = { "SauceCodePro Nerd Font Mono:size=10", "SauceCodePro Nerd Font:size=10", "monospace:size=10" };
 static const char *fonts[]         = { "monospace:size=10", "TerminessTTF Nerd Font Mono:size=24" };
