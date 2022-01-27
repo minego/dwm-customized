@@ -13,6 +13,8 @@ static const int usealtbar          = 1;        /* 1 means use non-dwm status ba
 static const char *altbarclass      = "Polybar"; /* Alternate bar class name */
 static const char *alttrayname      = "tray";    /* Polybar tray instance name */
 static const char *altbarcmd        = "$HOME/bar.sh"; /* Alternate bar launch command */
+static const char *termfocusedcmd	= "touch /tmp/.term_is_focused"; /* Command to run when a terminal is focused */
+static const char *termunfocusedcmd	= "rm /tmp/.term_is_focused"; /* Command to run when a terminal loses focuse */
 static const double defaultopacity  = 1.0;
 static const char *fonts[]          = { "monospace:size=10" };
 static const char dmenufont[]       = "monospace:size=10";
