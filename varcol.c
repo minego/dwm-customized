@@ -14,6 +14,20 @@
 /* The relative factors for the size of each column */
 static const float colfact[3]			= { 0.1, 0.6, 0.3 };
 
+static int isleft(Client *c)
+{
+	if (c == NULL) {
+		return 0;
+	}
+
+	if (c->mon != NULL && c->mon->mw <= 2000) {
+		/* The left column is not worth using on a small monitor */
+		return 0;
+	}
+
+	return c->isLeft;
+}
+
 /* Return non-zero if the currently selected client is in a master column */
 static int ismaster(void)
 {
@@ -51,7 +65,7 @@ void setcolfact(const Arg *arg)
 		index = 0;
 		/* master */
 		index = 0;
-	} else if (selmon->sel->isLeft) {
+	} else if (isleft(selmon->sel)) {
 		/* left */
 		index = -1;
 	} else {
@@ -184,7 +198,7 @@ void varcol(Monitor *m)
 		if (i < m->nmaster) {
 			/* Master */
 			;
-		} else if (c->isLeft) {
+		} else if (isleft(c)) {
 			/* Left; Detach and put in the left list */
 			detach(c);
 			c->next = NULL;
@@ -210,7 +224,7 @@ void varcol(Monitor *m)
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
 		if (mastern < m->nmaster) {
 			mastern++;
-		} else if (c->isLeft) {
+		} else if (isleft(c)) {
 			leftn++;
 		} else {
 			rightn++;
@@ -306,7 +320,7 @@ void incncols(const Arg *arg)
 
 		/* Auto adjust nmaster as well */
 		selmon->nmaster = MAX(selmon->nmaster, selmon->nmastercols);
-	} else if (selmon->sel->isLeft) {
+	} else if (isleft(selmon->sel)) {
 		/* left */
 		;
 	} else {
