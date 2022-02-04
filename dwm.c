@@ -1962,7 +1962,7 @@ setfocus(Client *c)
 			(unsigned char *) &(c->win), 1);
 	}
 
-	if (c->isterminal) {
+	if (c->isterminal && !c->swallowing) {
 		if (termfocusedcmd) {
 			system(termfocusedcmd);
 		}
