@@ -1962,15 +1962,6 @@ setfocus(Client *c)
 			(unsigned char *) &(c->win), 1);
 	}
 
-	if (c->isterminal && !c->swallowing) {
-		if (termfocusedcmd) {
-			system(termfocusedcmd);
-		}
-	} else {
-		if (termunfocusedcmd) {
-			system(termunfocusedcmd);
-		}
-	}
 	sendevent(c->win, wmatom[WMTakeFocus], NoEventMask, wmatom[WMTakeFocus], CurrentTime, 0, 0, 0);
 }
 
